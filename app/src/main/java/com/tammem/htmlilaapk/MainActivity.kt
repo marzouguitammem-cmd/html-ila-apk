@@ -486,6 +486,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun Section(number: String, title: String, content: @Composable ColumnScope.() -> Unit) {
         Card(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(22.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
