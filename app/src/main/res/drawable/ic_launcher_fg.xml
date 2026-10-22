@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 108dp canvas, content kept inside the central 66dp safe zone: a phone with </> on it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- phone body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,30 h28 a5,5 0 0 1 5,5 v38 a5,5 0 0 1 -5,5 h-28 a5,5 0 0 1 -5,-5 v-38 a5,5 0 0 1 5,-5 z" />
+    <!-- screen -->
+    <path
+        android:fillColor="#3D5AFE"
+        android:pathData="M39,36 h30 v32 h-30 z" />
+    <!-- < -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M48,46 l-5,6 l5,6" />
+    <!-- > -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M60,46 l5,6 l-5,6" />
+    <!-- / -->
+    <path
+        android:strokeColor="#FFD54F"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M56,44 l-4,16" />
+    <!-- home dot -->
+    <path
+        android:fillColor="#3D5AFE"
+        android:pathData="M54,73 m-1.8,0 a1.8,1.8 0 1 0 3.6,0 a1.8,1.8 0 1 0 -3.6,0" />
+</vector>
