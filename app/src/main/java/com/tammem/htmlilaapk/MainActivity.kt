@@ -236,10 +236,10 @@ class MainActivity : ComponentActivity() {
 
     /** Code arriving from outside: straight into an empty draft, otherwise ask where it goes. */
     private fun receiveCode(raw: String) {
-        if (store.isEmptyDraft(project, code)) setCode(raw) else sharedCode = raw
+        if (store.isEmptyDraft(project, code)) applyCode(raw) else sharedCode = raw
     }
 
-    private fun setCode(raw: String) {
+    private fun applyCode(raw: String) {
         val clean = CodeCleaner.extractCode(raw)
         code = clean
         update { it.copy(source = Project.SOURCE_CODE) }
@@ -262,7 +262,7 @@ class MainActivity : ComponentActivity() {
             toast("ما فماش حتى كود منسوخ — انسخ الكود قبل")
             return
         }
-        setCode(text)
+        applyCode(text)
     }
 
     private fun openPicked(uri: Uri) {
@@ -820,13 +820,13 @@ class MainActivity : ComponentActivity() {
                     TextButton(onClick = {
                         sharedCode = null
                         loadProject(store.newProject())
-                        setCode(text)
+                        applyCode(text)
                     }) { Text("تطبيق جديد") }
                 },
                 dismissButton = {
                     TextButton(onClick = {
                         sharedCode = null
-                        setCode(text)
+                        applyCode(text)
                     }) { Text("بدّل كود «${project.name.ifBlank { "الحالي" }}»") }
                 },
             )
