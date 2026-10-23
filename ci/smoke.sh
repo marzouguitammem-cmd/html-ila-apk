@@ -166,12 +166,22 @@ if grep -q '^OK' "$OUT/vplayer-build.log"; then
     adb shell input tap $xy
     sleep 3
     adb exec-out screencap -p > "$OUT/5c-player.png"
-    find_xy "⏸" > /dev/null
-    cp "$OUT/ui.xml" "$OUT/ui-player.xml"
-    grep -q "⏸" "$OUT/ui-player.xml" || { echo "player not playing"; fail=1; }
-    grep -q "/ 0:12" "$OUT/ui-player.xml" || { echo "duration not shown"; fail=1; }
-    sleep 5
+    sleep 3
     adb exec-out screencap -p > "$OUT/5d-playing.png"
+    # uiautomator can't read a screen that keeps changing, so prove playback by
+    # comparing the video area of two screenshots taken 3 s apart.
+    python3 - "$OUT/5c-player.png" "$OUT/5d-playing.png" > "$OUT/vplayer-motion.txt" <<'PY2'
+import sys
+from PIL import Image, ImageChops, ImageStat
+a, b = (Image.open(p).convert("L") for p in sys.argv[1:3])
+w, h = a.size
+box = (0, int(h * 0.30), w, int(h * 0.62))
+diff = ImageStat.Stat(ImageChops.difference(a.crop(box), b.crop(box))).mean[0]
+print("frame difference", round(diff, 2))
+sys.exit(0 if diff > 2 else 1)
+PY2
+    cat "$OUT/vplayer-motion.txt"
+    grep -q "frame difference" "$OUT/vplayer-motion.txt" && tail -1 "$OUT/vplayer-motion.txt" | python3 -c "import sys;v=float(sys.stdin.read().split()[-1]);sys.exit(0 if v>2 else 1)" || { echo "video is not playing"; fail=1; }
   else
     echo "could not find the video row"; fail=1
   fi

@@ -594,7 +594,8 @@ public class VideoPlayer extends Activity {
         topOverlay.setPadding(dp(8), dp(10), dp(12), dp(10));
         topOverlay.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
                 new int[]{Color.parseColor("#CC000000"), Color.TRANSPARENT}));
-        Button back = roundButton("→", Color.TRANSPARENT);
+        boolean rtl = getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+        Button back = roundButton(rtl ? "→" : "←", Color.TRANSPARENT);
         back.setTextSize(22);
         back.setOnClickListener(v -> closePlayer());
         topOverlay.addView(back, new LinearLayout.LayoutParams(dp(48), dp(48)));
