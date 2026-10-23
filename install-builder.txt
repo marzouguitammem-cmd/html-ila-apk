@@ -1,0 +1,9 @@
+Performing Streamed Install
+Success
+Starting: Intent { cmp=com.tammem.htmlilaapk/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.tammem.htmlilaapk/.MainActivity
+TotalTime: 2429
+WaitTime: 2435
+Complete

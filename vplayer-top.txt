@@ -1,0 +1,1 @@
+    topResumedActivity=ActivityRecord{5a2d1d3 u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity t16}

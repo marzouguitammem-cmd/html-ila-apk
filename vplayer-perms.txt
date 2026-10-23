@@ -1,0 +1,18 @@
+      android.permission.READ_MEDIA_VIDEO
+      android.permission.READ_EXTERNAL_STORAGE
+      com.tammem.appmaker.perm.slot03
+      com.tammem.appmaker.perm.slot04
+      com.tammem.appmaker.perm.slot05
+      com.tammem.appmaker.perm.slot06
+      com.tammem.appmaker.perm.slot07
+      com.tammem.appmaker.perm.slot08
+      com.tammem.appmaker.perm.slot09
+      com.tammem.appmaker.perm.slot10
+      com.tammem.appmaker.perm.slot11
+      com.tammem.appmaker.perm.slot12
+      com.tammem.appmaker.perm.slot13
+      com.tammem.appmaker.perm.slot14
+      com.tammem.appmaker.perm.slot15
+      com.tammem.appmaker.perm.slot16
+        android.permission.READ_EXTERNAL_STORAGE: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT]
+        android.permission.READ_MEDIA_VIDEO: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]

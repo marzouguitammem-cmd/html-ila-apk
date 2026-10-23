@@ -1,0 +1,4 @@
+10-23 22:15:08.816   522   550 E AppHibernationService: Package com.tammem.apps.jselftest is not installed for user 0
+10-23 22:15:08.816   522   550 E AppHibernationService: Package com.tammem.apps.jselftest is not installed for any user
+10-23 22:15:08.823   522   550 E AppHibernationService: Package com.tammem.apps.jselftest is not installed for user 0
+10-23 22:15:08.885   522   550 E AppHibernationService: Package com.tammem.apps.jselftest is not installed for any user
