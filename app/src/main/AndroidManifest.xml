@@ -41,6 +41,12 @@
         </activity>
 
         <activity
+            android:name=".CloudActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".PreviewActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
