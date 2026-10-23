@@ -1,0 +1,120 @@
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{30c2e28 com.google.android.apps.maps/10150} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{4df706e com.google.android.modulemetadata/10146} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{a78930f com.google.android.markup/10135} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{ebf5f9c com.android.providers.settings.auto_generated_rro_vendor__/10080} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{5456da5 com.google.android.webview/10133} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{896257a com.google.android.rkpdapp/10174} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{d241635 com.google.android.contacts/10155} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{730d988 com.android.server.telecom.auto_generated_rro_product__/10032} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{9443f21 com.google.android.overlay.googleconfig/10055} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{1d11f46 com.android.chrome/10151} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{3b5d507 com.android.bips.auto_generated_rro_product__/10035} BLOCKED
+10-23 09:08:48.753   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{5be0634 com.google.android.apps.customization.pixel/10143} BLOCKED
+10-23 09:08:48.755   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{804ac5d com.google.android.tag/10083} BLOCKED
+10-23 09:08:48.755   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{36fe9d2 com.google.android.overlay.permissioncontroller/10003} BLOCKED
+10-23 09:08:48.755   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{ead132c com.google.android.partnersetup/10125} BLOCKED
+10-23 09:08:48.755   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{a50baa3 com.google.android.apps.wallpaper.nexus/10142} BLOCKED
+10-23 09:08:48.755   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{a4f51a0 com.google.android.apps.nexuslauncher/10169} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{64b159 com.google.android.nearby.halfsheet/10178} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{cbed11e com.android.theme.font.notoserifsource/10066} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{c2a5dff com.google.android.safetycenter.resources/10175} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{8e7e7cc com.android.internal.display.cutout.emulation.waterfall/10040} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{7260a15 com.android.internal.systemui.navbar.transparent/10029} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{382e12a com.google.android.connectivity.resources/10177} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{fd0db1b com.android.providers.contacts.auto_generated_rro_product__/10019} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{91b4b8 com.google.android.feedback/10162} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{16a3291 com.google.android.printservice.recommendation/10110} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{2c5e5f6 com.google.android.apps.photos/10140} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{6c0aa3c com.google.android.calendar/10149} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{9b7c758 com.google.android.documentsui/10098} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{5096464 com.android.systemui.emulation.pixel_3a_xl/10021} BLOCKED
+10-23 09:08:48.756   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{aee66cd com.android.systemui.emulation.pixel_6_pro/10063} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{a626b82 com.android.systemui.emulation.pixel_7_pro/10054} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{1359293 com.android.systemui.emulation.pixel_8_pro/10001} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{72a62d0 com.google.mainline.telemetry/10153} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{407a2c9 com.android.carrierconfig.auto_generated_rro_product__/10064} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{b4fbdce com.android.providers.partnerbookmarks/10100} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{81cc4ef com.android.wallpaper.livepicker/10090} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{81adbfc com.android.providers.telephony.auto_generated_rro_product__/10062} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{35ea285 com.android.phone.auto_generated_rro_vendor__/10081} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{cade8da com.google.mainline.adservices/10136} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{59ac10b com.android.imsserviceentitlement/10118} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{337bbe8 com.google.android.healthconnect.controller/10180} BLOCKED
+10-23 09:08:48.757   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{76be201 com.android.internal.emulation.pixel_2_xl/10016} BLOCKED
+10-23 09:08:48.768   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{591b8a6 com.android.internal.emulation.pixel_3_xl/10056} BLOCKED
+10-23 09:08:48.768   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{bb262e7 com.android.internal.emulation.pixel_4_xl/10047} BLOCKED
+10-23 09:08:48.768   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{ac0ae94 com.android.internal.emulation.pixel_fold/10006} BLOCKED
+10-23 09:08:48.768   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{3b39d3d com.android.bookmarkprovider/10114} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{790b932 com.google.android.overlay.pixelconfigcommon/10014} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{fb84683 com.android.systemui.accessibility.accessibilitymenu.auto_generated_rro_product__/10050} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{3442000 com.android.systemui.emulation.pixel_3a/10013} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{5c1d039 com.android.systemui.emulation.pixel_4a/10000} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{60d367e com.android.systemui.emulation.pixel_6a/10042} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{daec7df com.android.systemui.emulation.pixel_7a/10017} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{9cb3c2c com.google.android.settings.intelligence/10117} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{57f260f com.google.android.projection.gearhead/10123} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{de636f5 com.google.android.uwb.resources/10190} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{355f69c com.android.cts.ctsshim/10173} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{6423c8a com.google.android.wifi.resources/10185} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{56202fb com.google.android.wifi.dialog/10186} BLOCKED
+10-23 09:08:48.769   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{c5ef18 com.google.android.apps.wallpaper/10161} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{7b04d71 com.google.android.odad/10121} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{40f9756 com.android.settings.auto_generated_rro_product__/10028} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{d43d3d7 com.android.internal.systemui.navbar.gestural/10051} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{250b917 com.google.android.apps.youtube.music/10156} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{fb6e4c4 com.android.bluetoothmidiservice/10107} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{e2b4fad com.android.storagemanager.auto_generated_rro_product__/10026} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{396b8a com.google.android.cellbroadcastreceiver/10179} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{785d2e2 com.android.phone.auto_generated_rro_product__/10061} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{707d673 android.auto_generated_rro_product__/10069} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{19f8930 com.android.internal.systemui.navbar.gestural_narrow_back/10052} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{df305fb com.google.android.inputmethod.latin/10147} BLOCKED
+10-23 09:08:48.770   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{7da39a9 android.auto_generated_rro_vendor__/10075} BLOCKED
+10-23 09:08:48.771   520  2349 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{7323b2e com.google.android.apps.restore/10120} BLOCKED
+10-23 09:08:48.823   520   550 I ActivityManager: Start proc 3475:com.google.android.gms.unstable/u0a128 for service {com.google.android.gms/com.google.android.gms.droidguard.DroidGuardService}
+10-23 09:08:49.258   520   573 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{15bbf72 com.google.android.googlequicksearchbox/10132} BLOCKED
+10-23 09:08:49.262   520   573 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{8243b79 com.google.android.gm/10141} BLOCKED
+10-23 09:08:49.262   520   573 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{a2260be com.google.android.dialer/10129} BLOCKED
+10-23 09:08:49.262   520   573 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{d241635 com.google.android.contacts/10155} BLOCKED
+10-23 09:08:49.263   520   573 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{250b917 com.google.android.apps.youtube.music/10156} BLOCKED
+10-23 09:08:49.456  1417  1499 I NearbyFastPair: DynamicSupportModule: onSupportStateUpdate start [CONTEXT service_id=265 ]
+10-23 09:08:49.474  1417  1499 I NearbyFastPair: DynamicSupportModule: onSupportStateUpdate start [CONTEXT service_id=265 ]
+10-23 09:08:49.512  1572  1870 W efg     : <DWB> Register all active fences - start 4 registration.
+10-23 09:08:49.652  1463  1463 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.checkin.START pkg=com.google.android.gms }
+10-23 09:08:49.652  1463  1463 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.checkin.START pkg=com.google.android.gms }
+10-23 09:08:49.794  3043  3094 I DialerCoalescedRowsDao: com.android.dialer.calllog.coalescer.CoalescedRowsDao.save:162 start writing coalesced_rows_for_all_calls
+10-23 09:08:49.939  3043  3094 I DialerCoalescedRowsDao: com.android.dialer.calllog.coalescer.CoalescedRowsDao.save:162 start writing coalesced_rows_for_conversation_history_all_calls
+10-23 09:08:49.960  3043  3097 I DialerCoalescedRowsDao: com.android.dialer.calllog.coalescer.CoalescedRowsDao.save:162 start writing coalesced_rows_for_missed_calls
+10-23 09:08:50.279  1463  1463 D BoundBrokerSvc: onBind: Intent { act=com.google.android.mdh.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsBoundBrokerService }
+10-23 09:08:50.279  1463  1463 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.mdh.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsBoundBrokerService }
+10-23 09:08:50.424  3475  3475 I GmsApplication: [gms_startup_benchmark] Static start time (ms): 53833, Startup latency (ms): 866, Is system user: true
+10-23 09:08:50.450  3475  3549 I GMS_MM_Logger: Start time: 244768
+10-23 09:08:50.551  1463  1463 D BoundBrokerSvc: onBind: Intent { act=com.google.android.mdh.service.listener.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsBoundBrokerService }
+10-23 09:08:50.551  1463  1463 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.mdh.service.listener.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsBoundBrokerService }
+10-23 09:08:50.991  1463  1463 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.gservices.START pkg=com.google.android.gms }
+10-23 09:08:50.995  1463  1463 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.constellation.service.START pkg=com.google.android.gms }
+10-23 09:08:51.004  1463  1463 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.constellation.service.START pkg=com.google.android.gms }
+10-23 09:08:51.143   520   550 I ActivityManager: Start proc 3567:com.android.camera2/u0a144 for broadcast {com.android.camera2/com.android.camera.SetActivitiesCameraReceiver}
+10-23 09:08:51.228   520  2347 W ActivityManager: Unable to start service Intent { act=com.google.android.gms.home.service.START pkg=com.google.android.gms } U=0: not found
+10-23 09:08:51.229  1417  1868 W GmsClient: unable to connect to service: com.google.android.gms.home.service.START on com.google.android.gms
+10-23 09:08:51.276  1463  1463 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.languageprofile.service.START pkg=com.google.android.gms }
+10-23 09:08:51.276  1463  1463 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.languageprofile.service.START pkg=com.google.android.gms }
+10-23 09:08:52.188     0     0 I init    : Control message: Processed ctl.start for 'idmap2d' from pid: 520 (system_server)
+10-23 09:08:52.021  1655  1655 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.tammem.offlineprobe], userId:[0], reason:[package is added.].
+10-23 09:08:52.156  1272  1272 D CellBroadcastReceiver: Start Cell Broadcast configuration for intent=ACTION_ENABLE_CHANNELS
+10-23 09:08:52.449  1463  1463 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.findmydevice.spot.service.management.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-23 09:08:52.449  1463  1463 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.findmydevice.spot.service.management.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-23 09:08:52.537   520   550 I ActivityManager: Start proc 3629:com.android.dynsystem/1000 for broadcast {com.android.dynsystem/com.android.dynsystem.BootCompletedReceiver}
+10-23 09:08:52.583  1463  1463 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.findmydevice.spot.service.locationreport.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-23 09:08:52.604  1463  1463 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.findmydevice.spot.service.locationreport.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-23 09:08:52.666  2679  2714 I em.offlineprobe: Background concurrent copying GC freed 58216(2672KB) AllocSpace objects, 8(212KB) LOS objects, 49% free, 8136KB/15MB, paused 1.133ms,8us total 164.148ms
+10-23 09:08:52.676  1463  1463 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.chimera.container.moduleinstall.ModuleInstallService.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-23 09:08:52.684  1463  1463 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.chimera.container.moduleinstall.ModuleInstallService.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-23 09:08:52.690   520   550 I ActivityManager: Start proc 3640:com.android.intentresolver/u0a92 for broadcast {com.android.intentresolver/com.android.intentresolver.ChooserActivityReEnabler}
+10-23 09:08:53.247   520   550 I ActivityManager: Start proc 3664:com.android.dynsystem:dynsystem/1000 for service {com.android.dynsystem/com.android.dynsystem.DynamicSystemInstallationService}
+10-23 09:08:53.248   520   550 W ActivityManager: Slow operation: 114ms so far, now at startProcess: asking zygote to start proc
+10-23 09:08:53.268   520   550 I ActivityManager: Start proc 3678:com.android.nfc/1027 for broadcast {com.android.nfc/com.android.nfc.NfcBootCompletedReceiver}
+10-23 09:08:53.745   520   550 I ActivityManager: Start proc 3724:com.android.shell/2000 for broadcast {com.android.shell/com.android.shell.HeapDumpReceiver}
+10-23 09:08:53.868   520  2348 I AppsFilter: interaction: PackageSetting{e57e983 com.tammem.offlineprobe/10192} -> PackageSetting{c64be0d com.google.android.gm/10141} BLOCKED
+10-23 09:08:54.118   520   550 I ActivityManager: Start proc 3753:com.google.android.configupdater/u0a130 for broadcast {com.google.android.configupdater/com.google.android.configupdater.MainReceiver}
+10-23 09:08:54.215  1655  2059 I SP.AiAi : Scheduling: job start ({m:b:u:l, bg}), 1 started, 0 paused, 3 scheduled, 4 pending: manifests:webref-2-en-us-19071200 @ * {m:b:u:l, bg}, manifests:spelling_correction-22110320 * {W:b:I:l, bg}, manifests:kg_collections_table-21051103 * {W:b:u:l, bg}, manifests:actions-ranking-table-211005 * {W:b:u:l, bg}

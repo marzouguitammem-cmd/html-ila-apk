@@ -1,0 +1,4 @@
+apk=/home/runner/work/html-ila-apk/html-ila-apk/apk/app-debug.apk
+Performing Streamed Install
+Success
+Starting: Intent { cmp=com.tammem.offlineprobe/.MainActivity }

@@ -1,0 +1,11 @@
+RESULT=PASS (13664ms)
+
+start
+tools: ecj=1MB d8=10MB android=25MB
+compiling with ECJ...
+  loading ecj.dex.jar (writable=false)
+ECJ compiled: true (.class files: 1)
+dexing with D8...
+  loading d8.dex.jar (writable=false)
+D8 dexed: true (classes.dex: 2964 bytes)
+ok=1
