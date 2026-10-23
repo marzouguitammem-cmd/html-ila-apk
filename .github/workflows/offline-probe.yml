@@ -81,33 +81,14 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
-          script: |
-            W="$GITHUB_WORKSPACE"
-            adb logcat -c 2>/dev/null || true
-            ls -la apk/app-debug.apk > "$W/install.txt" 2>&1 || true
-            adb install -r apk/app-debug.apk >> "$W/install.txt" 2>&1 || true
-            adb shell am start -n com.tammem.offlineprobe/.MainActivity >> "$W/install.txt" 2>&1 || true
-            D=/sdcard/Android/data/com.tammem.offlineprobe/files
-            ok=unknown
-            for i in $(seq 1 120); do
-              adb shell "test -f $D/PASS" 2>/dev/null && { ok=1; break; }
-              adb shell "test -f $D/FAIL" 2>/dev/null && { ok=0; break; }
-              sleep 3
-            done
-            adb pull "$D/probe.log" "$W/probe.log" 2>/dev/null || echo "(no probe.log)" > "$W/probe.log"
-            adb logcat -d 2>/dev/null | grep -iE "offlineprobe|AndroidRuntime|OfflineCompiler|OutOfMemory|FATAL|art " | tail -120 > "$W/logcat.txt" 2>/dev/null || true
-            [ -s "$W/logcat.txt" ] || echo "(logcat empty)" > "$W/logcat.txt"
-            echo "ok=$ok" >> "$W/probe.log"
-            echo "===== probe.log ====="; cat "$W/probe.log"
-            echo "===== logcat ====="; cat "$W/logcat.txt"
-            true
+          script: bash offline-probe/probe.sh
 
       - name: Publish logs to probe-results branch
         if: always()
         run: |
           cd "$GITHUB_WORKSPACE"
-          for f in probe.log logcat.txt install.txt; do [ -f "$f" ] || echo "(missing $f)" > "$f"; done
-          rm -rf probe-out && mkdir -p probe-out && cp probe.log logcat.txt install.txt probe-out/
+          mkdir -p probe-out
+          for f in probe.log logcat.txt install.txt; do [ -f "probe-out/$f" ] || echo "(missing $f — emulator step did not run)" > "probe-out/$f"; done
           cd probe-out
           git init -q -b probe-results
           git config user.name ci; git config user.email ci@users.noreply.github.com
