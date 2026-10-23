@@ -387,6 +387,7 @@ public class Gallery extends Activity {
         stateBox.setPadding(dp(32), 0, dp(32), dp(60));
         stateText = text("", 16, MUTED);
         stateText.setGravity(Gravity.CENTER);
+        stateText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         stateText.setLineSpacing(dp(4), 1f);
         stateBox.addView(stateText);
         stateButton = pill("", ACCENT);
@@ -629,8 +630,10 @@ public class Gallery extends Activity {
             a.setPadding(dp(6), dp(6), dp(6), dp(6));
             TextView icon = text(actions[i][0], 22, Color.WHITE);
             icon.setGravity(Gravity.CENTER);
+            icon.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
             TextView label = text(actions[i][1], 12, Color.WHITE);
             label.setGravity(Gravity.CENTER);
+            label.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
             a.addView(icon);
             a.addView(label);
             a.setOnClickListener(v -> onViewerAction(which));
@@ -939,6 +942,8 @@ public class Gallery extends Activity {
         t.setText(s);
         t.setTextSize(sp);
         t.setTextColor(color);
+        // Arabic and Latin names line up on the same side.
+        t.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         return t;
     }
 

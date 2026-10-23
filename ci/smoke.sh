@@ -248,7 +248,9 @@ if grep -q '^OK' "$OUT/gallery-build.log"; then
       first=$(grep -o 'text="cam_[12].jpg"' "$OUT/ui-viewer.xml" | head -1)
       echo "viewer shows: $first"
       [ -n "$first" ] || { echo "gallery: viewer title missing"; fail=1; }
-      adb shell input swipe 950 1200 120 1200 120
+      # swipe toward the other photo: from 1/2 go next (left), from 2/2 go back (right)
+      if grep -q 'text="1 / 2' "$OUT/ui-viewer.xml"; then adb shell input swipe 950 1200 120 1200 120
+      else adb shell input swipe 120 1200 950 1200 120; fi
       sleep 2
       find_xy "^cam_" > /dev/null; cp "$OUT/ui.xml" "$OUT/ui-viewer2.xml"
       second=$(grep -o 'text="cam_[12].jpg"' "$OUT/ui-viewer2.xml" | head -1)
