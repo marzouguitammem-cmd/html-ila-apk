@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import dalvik.system.InMemoryDexClassLoader;
 
 /**
  * Proves (or disproves) that a Java file can be compiled to a dex ON THE DEVICE,
@@ -160,23 +159,13 @@ public class OfflineCompiler {
     // ---- dex loading ----
 
     private ClassLoader dexLoader(File dexJar) throws Exception {
-        List<ByteBuffer> buffers = new ArrayList<>();
-        try (ZipFile zf = new ZipFile(dexJar)) {
-            Enumeration<? extends ZipEntry> e = zf.entries();
-            List<String> names = new ArrayList<>();
-            for (ZipEntry entry; e.hasMoreElements(); ) {
-                entry = e.nextElement();
-                if (entry.getName().endsWith(".dex")) names.add(entry.getName());
-            }
-            Collections.sort(names);
-            for (String n : names) {
-                try (InputStream in = zf.getInputStream(zf.getEntry(n))) {
-                    buffers.add(ByteBuffer.wrap(readAll(in)));
-                }
-            }
-            line("  " + dexJar.getName() + ": " + names.size() + " dex");
-        }
-        return new InMemoryDexClassLoader(buffers.toArray(new ByteBuffer[0]), getClass().getClassLoader());
+        // DexClassLoader (not InMemoryDexClassLoader) so the tool's bundled resources
+        // — ECJ's messages.properties, META-INF/services — remain loadable from the jar.
+        File opt = new File(ctx.getCodeCacheDir(), dexJar.getName() + ".opt");
+        opt.mkdirs();
+        line("  loading " + dexJar.getName());
+        return new dalvik.system.DexClassLoader(
+                dexJar.getAbsolutePath(), opt.getAbsolutePath(), null, getClass().getClassLoader());
     }
 
     // ---- helpers ----

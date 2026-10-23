@@ -37,10 +37,18 @@ jobs:
           dex "$D8" d8_dex
           OUT=offline-probe/app/src/main/assets/toolchain
           mkdir -p "$OUT"
-          (cd ecj_dex && zip -q "$GITHUB_WORKSPACE/$OUT/ecj.dex.jar" classes*.dex)
-          (cd d8_dex && zip -q "$GITHUB_WORKSPACE/$OUT/d8.dex.jar" classes*.dex)
+          # A runnable dex-jar: keep the tool's own resources (.properties message
+          # bundles, META-INF/services), drop the .class entries, add the dex.
+          mk() { # $1 original jar, $2 dex dir, $3 output jar (relative to workspace)
+            cp "$1" "$3"
+            zip -q -d "$3" '*.class' >/dev/null 2>&1 || true
+            ( cd "$2" && zip -q -g "$GITHUB_WORKSPACE/$3" classes*.dex )
+          }
+          mk ecj.jar ecj_dex "$OUT/ecj.dex.jar"
+          mk "$D8" d8_dex "$OUT/d8.dex.jar"
           cp "$AJ" "$OUT/android.jar"
           rm -f "$OUT/.keep"
+          echo "contents of ecj.dex.jar (sample):"; unzip -l "$OUT/ecj.dex.jar" | grep -E "classes.*dex|messages.properties" | head
           du -m "$OUT"/* | sort -n
 
       - name: Build the probe APK
