@@ -1,0 +1,89 @@
+name: Build job
+
+# Triggered when the app commits a job.json. Each job builds one APK and
+# publishes it as a release the app downloads. result.json (written back) is
+# how the app learns success/failure without needing Actions-log access.
+on:
+  push:
+    paths:
+      - 'jobs/**/job.json'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Job id to build
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-job
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Work out which jobs to build
+        id: jobs
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if [ -n "${{ github.event.inputs.job }}" ]; then
+            ids="${{ github.event.inputs.job }}"
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+            # first push / unknown base: build every job that has no result yet
+            ids=""
+            for d in jobs/*/ ; do
+              [ -f "$d/job.json" ] || continue
+              [ -f "$d/result.json" ] && continue
+              ids="$ids $(basename "$d")"
+            done
+          else
+            ids=$(git diff --name-only "$BEFORE" ${{ github.sha }} \
+                  | sed -n 's#^jobs/\([^/]*\)/job.json$#\1#p' | sort -u | tr '\n' ' ')
+          fi
+          echo "ids=$ids" >> "$GITHUB_OUTPUT"
+          echo "building:$ids"
+
+      - name: Build each job
+        if: steps.jobs.outputs.ids != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          for ID in ${{ steps.jobs.outputs.ids }}; do
+            echo "::group::job $ID"
+            if bash cloud/ci/build_job.sh "$ID"; then ok=1; else ok=0; fi
+            # publish result.json back (does not re-trigger: path filter is job.json only)
+            git config user.name "appmaker-bot"
+            git config user.email "bot@users.noreply.github.com"
+            git add "jobs/$ID/result.json" || true
+            git commit -m "result for $ID" || true
+            if [ "$ok" = "1" ]; then
+              gh release delete "job-$ID" --yes --cleanup-tag 2>/dev/null || true
+              gh release create "job-$ID" out/app.apk --title "job $ID" --notes "APK for job $ID"
+            fi
+            echo "::endgroup::"
+          done
+          # push all result.json commits once
+          git push origin HEAD:${{ github.ref_name }} || true
+
+      - name: Upload APK artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job-apks
+          path: out/*.apk
+          if-no-files-found: ignore

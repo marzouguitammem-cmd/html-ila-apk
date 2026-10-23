@@ -6,3 +6,6 @@ local.properties
 .DS_Store
 *.apk
 app/src/main/assets/template_info.properties
+work/
+out/
+jobs/*/result.json

@@ -1,0 +1,11 @@
+{
+  "type": "single",
+  "appName": "مرحبا",
+  "packageName": "com.tammem.apps.hello",
+  "versionCode": 1,
+  "permissions": ["INTERNET", "VIBRATE"],
+  "mainActivity": "com.tammem.apps.hello.MainActivity",
+  "files": {
+    "com/tammem/apps/hello/MainActivity.java": "package com.tammem.apps.hello;\nimport android.app.Activity;\nimport android.os.Bundle;\nimport android.widget.TextView;\nimport android.view.Gravity;\nimport android.graphics.Color;\npublic class MainActivity extends Activity {\n  @Override protected void onCreate(Bundle b){\n    super.onCreate(b);\n    TextView t = new TextView(this);\n    t.setText(\"مرحبا من تطبيق مبني على التليفون 🎉\\n\"+(6*7));\n    t.setGravity(Gravity.CENTER); t.setTextSize(22); t.setTextColor(Color.WHITE);\n    t.setBackgroundColor(Color.parseColor(\"#1565C0\"));\n    setContentView(t);\n  }\n}\n"
+  }
+}
