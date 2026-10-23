@@ -104,15 +104,28 @@ public class OfflineCompiler {
         Class<?> progress = cl.loadClass("org.eclipse.jdt.core.compiler.CompilationProgress");
         Method compile = batch.getMethod("compile", String.class, PrintWriter.class, PrintWriter.class, progress);
 
+        // Collect the actual .java files (paths in filesDir have no spaces).
+        List<Path> sources = new ArrayList<>();
+        collectJava(srcRoot, sources);
+        StringBuilder cmd = new StringBuilder();
+        cmd.append("-bootclasspath ").append(androidJar.getAbsolutePath())
+           .append(" -source 8 -target 8 -nowarn -d ").append(out.getAbsolutePath());
+        for (Path p : sources) cmd.append(' ').append(p.toString());
+
         StringWriter sysOut = new StringWriter(), sysErr = new StringWriter();
-        String cmd = "-bootclasspath " + q(androidJar.getAbsolutePath())
-                + " -source 1.8 -target 1.8 -proc:none -nowarn -noExit"
-                + " -d " + q(out.getAbsolutePath())
-                + " " + q(srcRoot.getAbsolutePath());
-        Object ok = compile.invoke(null, cmd, new PrintWriter(sysOut), new PrintWriter(sysErr), null);
+        Object ok = compile.invoke(null, cmd.toString(), new PrintWriter(sysOut), new PrintWriter(sysErr), null);
         String err = sysErr.toString().trim();
         if (!err.isEmpty()) line("  ecj stderr: " + err.substring(0, Math.min(err.length(), 500)));
         return Boolean.TRUE.equals(ok) && countClasses(out) > 0;
+    }
+
+    private void collectJava(File dir, List<Path> out) {
+        File[] fs = dir.listFiles();
+        if (fs == null) return;
+        for (File f : fs) {
+            if (f.isDirectory()) collectJava(f, out);
+            else if (f.getName().endsWith(".java")) out.add(f.toPath());
+        }
     }
 
     // ---- D8 (programmatic API: it never calls System.exit) ----
