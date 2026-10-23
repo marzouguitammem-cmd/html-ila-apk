@@ -8,3 +8,6 @@ local.properties
 app/src/main/assets/template_info.properties
 work/
 out/
+app/src/main/assets/toolchain/
+app/src/main/assets/java_template.apk
+app/src/main/assets/java_template_info.properties

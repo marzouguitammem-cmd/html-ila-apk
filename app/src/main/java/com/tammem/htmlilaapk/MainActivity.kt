@@ -208,6 +208,10 @@ class MainActivity : ComponentActivity() {
             runSelfTest()
             return
         }
+        if (intent.getBooleanExtra("javaselftest", false)) {
+            runJavaSelfTest()
+            return
+        }
         when (intent.action) {
             Intent.ACTION_SEND -> {
                 @Suppress("DEPRECATION")
@@ -398,6 +402,48 @@ class MainActivity : ComponentActivity() {
             store.delete(SELFTEST_ID)
             File(dir, "selftest.log").writeText(log.toString())
             File(dir, "selftest.done").writeText("1")
+        }
+    }
+
+    /** Build-machine test for the OFFLINE Java engine: compiles a tiny app on-device. */
+    private fun runJavaSelfTest() {
+        val dir = getExternalFilesDir(null) ?: filesDir
+        File(dir, "javaselftest.done").delete()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val log = StringBuilder()
+            try {
+                val javaCode = """
+                    package com.example.jst;
+                    import android.app.Activity;
+                    import android.os.Bundle;
+                    import android.widget.TextView;
+                    import android.graphics.Color;
+                    import android.view.Gravity;
+                    import java.util.ArrayList;
+                    import java.util.List;
+                    public class Main extends Activity {
+                      @Override protected void onCreate(Bundle b) {
+                        super.onCreate(b);
+                        List<Integer> xs = new ArrayList<>();
+                        for (int i = 1; i <= 6; i++) xs.add(i);
+                        int sum = xs.stream().mapToInt(Integer::intValue).sum();
+                        TextView t = new TextView(this);
+                        t.setText("Java تبنى على التليفون ✔ sum=" + sum);
+                        t.setTextColor(Color.WHITE); t.setTextSize(22f); t.setGravity(Gravity.CENTER);
+                        t.setBackgroundColor(Color.parseColor("#00695C"));
+                        setContentView(t);
+                      }
+                    }
+                """.trimIndent()
+                val icon = IconMaker.png(IconMaker.auto("JST", 5))
+                val spec = OfflineJava.Spec("اختبار Java", "com.tammem.apps.jselftest", 1, javaCode, icon)
+                val r = OfflineJava.build(this@MainActivity, spec, File(dir, "javaselftest.apk")) { }
+                log.append("OK size=").append(r.apk.length())
+            } catch (t: Throwable) {
+                log.append("FAIL ").append(Log.getStackTraceString(t))
+            }
+            File(dir, "javaselftest.log").writeText(log.toString())
+            File(dir, "javaselftest.done").writeText("1")
         }
     }
 

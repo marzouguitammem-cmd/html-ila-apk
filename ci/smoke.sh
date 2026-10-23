@@ -64,6 +64,25 @@ adb install -r "$OUT/selftest.apk" > "$OUT/install-selftest.txt" 2>&1 || fail=1
 cat "$OUT/install-selftest.txt"
 ensure_running com.tammem.apps.selftest com.tammem.apps.selftest/com.tammem.webrunner.MainActivity 3-selftest-app || fail=1
 
+echo "== build a Java app on the device (offline engine)"
+adb shell am force-stop com.tammem.htmlilaapk
+adb shell am start -W -n com.tammem.htmlilaapk/.MainActivity --ez javaselftest true
+for i in $(seq 1 120); do
+  adb shell "test -f $D/javaselftest.done" && break
+  sleep 2
+done
+adb shell cat "$D/javaselftest.log" > "$OUT/javaselftest.log" 2>&1
+cat "$OUT/javaselftest.log"
+if grep -q '^OK' "$OUT/javaselftest.log"; then
+  adb pull "$D/javaselftest.apk" "$OUT/javaselftest.apk" || fail=1
+  adb install -r "$OUT/javaselftest.apk" > "$OUT/install-java.txt" 2>&1 || fail=1
+  cat "$OUT/install-java.txt"
+  ensure_running com.tammem.apps.jselftest com.tammem.apps.jselftest/com.example.jst.Main 4-java-app || fail=1
+  rm -f "$OUT/javaselftest.apk"
+else
+  echo "offline java self test failed"; fail=1
+fi
+
 adb logcat -d -b crash > "$OUT/crash.txt" 2>&1
 adb logcat -d '*:E' | grep -iE "tammem|webrunner|AndroidRuntime|AppMaker" > "$OUT/errors.txt" 2>&1
 rm -f "$OUT/selftest.apk"

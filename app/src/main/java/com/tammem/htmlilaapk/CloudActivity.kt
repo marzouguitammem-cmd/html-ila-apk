@@ -100,6 +100,9 @@ class CloudActivity : ComponentActivity() {
     private var showConnect by mutableStateOf(false)
     private var connecting by mutableStateOf(false)
     private var loginState by mutableStateOf<String?>(null)
+    private var offline by mutableStateOf(false)
+    private var offlinePhase by mutableStateOf("")
+    private val offlineAvailable by lazy { OfflineJava.isAvailable(this) }
 
     private val pickZip = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) importZip(uri)
@@ -177,6 +180,7 @@ class CloudActivity : ComponentActivity() {
         if (building) return
         val p = project
         if (p.name.isBlank()) { toast("اكتب اسم التطبيق"); return }
+        if (offline) { buildOffline(); return }
         if (!github.isConfigured) { showConnect = true; return }
         error = null; resultApk = null; building = true; phase = 0
         persist()
@@ -200,6 +204,33 @@ class CloudActivity : ComponentActivity() {
                     resultApk = out
                     resultVersion = res.versionName
                 }
+            } catch (e: Throwable) {
+                error = (e.message ?: e.javaClass.simpleName)
+            } finally {
+                building = false
+            }
+        }
+    }
+
+    private fun buildOffline() {
+        val p = project
+        if (p.source != CloudProject.SOURCE_CODE) { toast("الأوفلاين يقبل كان كود Java"); return }
+        if (!offlineAvailable) { error = "هالنسخة من التطبيق ما فيهاش أدوات البناء الأوفلاين. حدّث التطبيق."; return }
+        error = null; resultApk = null; building = true; offlinePhase = "prepare"
+        persist()
+        lifecycleScope.launch {
+            try {
+                val version = p.versionCode + 1
+                val icon = IconMaker.png(IconMaker.auto(p.name, 1))
+                val out = File(File(filesDir, "offline_out/${p.id}"), CloudJob.safeApkName(p.name))
+                val spec = OfflineJava.Spec(p.name, p.packageName, version, code, icon)
+                val res = withContext(Dispatchers.IO) {
+                    OfflineJava.build(this@CloudActivity, spec, out) { ph -> runOnUiThread { offlinePhase = ph } }
+                }
+                project = project.copy(versionCode = version, lastApk = res.apk.absolutePath, updatedAt = System.currentTimeMillis())
+                store.save(project)
+                resultApk = res.apk
+                resultVersion = "1.$version"
             } catch (e: Throwable) {
                 error = (e.message ?: e.javaClass.simpleName)
             } finally {
@@ -242,7 +273,7 @@ class CloudActivity : ComponentActivity() {
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("تطبيق Java (سحابي)", fontWeight = FontWeight.Bold) },
+                    title = { Text("تطبيق Java", fontWeight = FontWeight.Bold) },
                     navigationIcon = { IconButton(onClick = { finish() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "رجوع") } },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
@@ -253,7 +284,8 @@ class CloudActivity : ComponentActivity() {
                     .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                GithubCard()
+                ModePicker()
+                if (!offline) GithubCard()
                 Section("١", "اسم التطبيق") {
                     OutlinedTextField(
                         value = project.name, onValueChange = { v -> update { it.copy(name = v.take(40)) } },
@@ -263,20 +295,48 @@ class CloudActivity : ComponentActivity() {
                     )
                 }
                 Section("٢", "المحتوى") { SourcePicker() }
-                Section("٣", "الأذونات") { Permissions() }
+                if (!offline) Section("٣", "الأذونات") { Permissions() }
 
                 Button(
                     onClick = { build() }, enabled = !building,
                     modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp),
                 ) {
                     Icon(Icons.Default.Build, null); Spacer(Modifier.width(8.dp))
-                    Text("ابنِ في السحاب", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    Text(if (offline) "ابنِ على التليفون" else "ابنِ في السحاب", fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 }
 
                 if (building) Progress()
                 error?.let { ErrorCard(it) }
                 resultApk?.let { ResultCard(it) }
                 Spacer(Modifier.height(24.dp))
+            }
+        }
+    }
+
+    @Composable
+    private fun ModePicker() {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            val options = listOf(false to "☁️ سحابي", true to "📱 أوفلاين")
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                options.forEachIndexed { i, (key, label) ->
+                    SegmentedButton(
+                        selected = offline == key,
+                        onClick = {
+                            offline = key
+                            if (key) update { it.copy(source = CloudProject.SOURCE_CODE) }
+                            resultApk = null; error = null
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(i, options.size),
+                    ) { Text(label) }
+                }
+            }
+            if (offline) {
+                Hint(
+                    if (offlineAvailable)
+                        "📱 يبني على التليفون بلا إنترنت. يقبل كان Java بسيطة (الواجهة بالكود، بلا مكتبات خارجية وبلا موارد XML). أول بناء ياخذ شوية (يحضّر الأدوات)."
+                    else
+                        "⚠️ هالنسخة ما فيهاش أدوات البناء الأوفلاين. حدّث التطبيق لآخر نسخة."
+                )
             }
         }
     }
@@ -329,7 +389,9 @@ class CloudActivity : ComponentActivity() {
 
     @Composable
     private fun SourcePicker() {
-        val options = listOf(CloudProject.SOURCE_CODE to "كود Java", CloudProject.SOURCE_ZIP to "مشروع ZIP")
+        // Offline builds simple single-file Java only; ZIP projects need the cloud.
+        val options = if (offline) listOf(CloudProject.SOURCE_CODE to "كود Java")
+            else listOf(CloudProject.SOURCE_CODE to "كود Java", CloudProject.SOURCE_ZIP to "مشروع ZIP")
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             options.forEachIndexed { i, (key, label) ->
                 SegmentedButton(
@@ -389,7 +451,15 @@ class CloudActivity : ComponentActivity() {
 
     @Composable
     private fun Progress() {
-        val label = when (phase) {
+        val label = if (offline) when (offlinePhase) {
+            "prepare" -> "نحضّر أدوات البناء… (أول مرة تاخذ شوية)"
+            "compile" -> "نكمبايلي الكود (Java)…"
+            "dex" -> "نحوّل لـ dex…"
+            "pack" -> "نجمّع في التطبيق…"
+            "sign" -> "نوقّع…"
+            "save" -> "نحفظ…"
+            else -> "نحضّر…"
+        } else when (phase) {
             1 -> "نبعث المشروع لـ GitHub…"
             2 -> "GitHub يبني التطبيق… (3–5 دقايق، خلّي الإنترنت)"
             3 -> "نهبّط الـ APK…"
@@ -398,7 +468,7 @@ class CloudActivity : ComponentActivity() {
         Card(shape = RoundedCornerShape(18.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(label, fontWeight = FontWeight.Medium)
-                if (phase == 2) LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (offline || phase == 2) LinearProgressIndicator(Modifier.fillMaxWidth())
                 else LinearProgressIndicator(progress = { (phase / 3f).coerceIn(0.05f, 1f) }, modifier = Modifier.fillMaxWidth())
             }
         }

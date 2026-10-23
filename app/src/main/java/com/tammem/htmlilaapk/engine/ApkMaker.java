@@ -45,6 +45,8 @@ public final class ApkMaker {
         public final String labelPlaceholder;
         public final String versionNamePlaceholder;
         public final String iconPath;
+        /** Launcher activity placeholder (Java template only); null for the HTML runner. */
+        public final String activityPlaceholder;
 
         public Template(File apk, Properties p) {
             this.apk = apk;
@@ -52,6 +54,8 @@ public final class ApkMaker {
             this.labelPlaceholder = req(p, "label");
             this.versionNamePlaceholder = req(p, "versionName");
             this.iconPath = req(p, "iconBg");
+            String act = p.getProperty("activity");
+            this.activityPlaceholder = (act == null || act.trim().isEmpty()) ? null : act.trim();
         }
 
         public static Template load(File apk, InputStream info) throws IOException {
@@ -79,6 +83,10 @@ public final class ApkMaker {
         public byte[] iconPng;
         /** Folder with index.html and the rest of the site. Null keeps the template page. */
         public File wwwDir;
+        /** Java mode: the compiled classes.dex to put in the APK. Null = HTML mode. */
+        public byte[] replacementDex;
+        /** Java mode: the user's launcher activity, e.g. com.example.MainActivity. */
+        public String mainActivity;
     }
 
     public interface Progress {
@@ -145,6 +153,11 @@ public final class ApkMaker {
         if (x.replaceStrings(pkg) == 0) throw new IllegalStateException("Template package not found");
         if (x.replaceStrings(label) == 0) throw new IllegalStateException("Template label not found");
         x.replaceStrings(version);
+        if (t.activityPlaceholder != null && s.mainActivity != null && !s.mainActivity.isEmpty()) {
+            Map<String, String> act = new HashMap<>();
+            act.put(t.activityPlaceholder, s.mainActivity);
+            if (x.replaceStrings(act) == 0) throw new IllegalStateException("Template activity not found");
+        }
         if (!x.setIntAttribute("manifest", "versionCode", s.versionCode)) {
             throw new IllegalStateException("versionCode not found");
         }
@@ -162,19 +175,27 @@ public final class ApkMaker {
             byte[] manifest = patchManifest(t, s, readAll(template.getInputStream(manifestEntry)));
             put(zip, counter, "AndroidManifest.xml", manifest, false);
 
+            boolean javaMode = s.replacementDex != null;
+
             Enumeration<? extends ZipEntry> entries = template.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry e = entries.nextElement();
                 String name = e.getName();
                 if (e.isDirectory() || name.equals("AndroidManifest.xml") || isSignatureFile(name)) continue;
-                if (name.equals(CONFIG)) continue;
+                // Java mode: drop the template's code and write the compiled dex instead.
+                if (javaMode && name.matches("classes\\d*\\.dex")) continue;
+                if (!javaMode && name.equals(CONFIG)) continue;
                 if (s.wwwDir != null && name.startsWith(WWW)) continue;
                 if (s.iconPng != null && name.equals(t.iconPath)) continue;
                 byte[] data = readAll(template.getInputStream(e));
                 put(zip, counter, name, data, e.getMethod() == ZipEntry.STORED);
             }
 
-            put(zip, counter, CONFIG, s.configJson.getBytes(StandardCharsets.UTF_8), false);
+            if (javaMode) {
+                put(zip, counter, "classes.dex", s.replacementDex, false);
+            } else {
+                put(zip, counter, CONFIG, s.configJson.getBytes(StandardCharsets.UTF_8), false);
+            }
             if (s.iconPng != null) put(zip, counter, t.iconPath, s.iconPng, true);
             if (s.wwwDir != null) {
                 List<File> files = new ArrayList<>();

@@ -37,6 +37,15 @@ jobs:
       - name: Pack the template into صانع التطبيقات
         run: python3 ci/prepare_template.py
 
+      - name: Assemble the offline Java toolchain
+        run: bash ci/make_java_toolchain.sh app/src/main/assets/toolchain
+
+      - name: Build and pack the Java template
+        run: |
+          ./gradlew --no-daemon --stacktrace :javarunner:assembleRelease 2>&1 | tee -a build.log
+          test ${PIPESTATUS[0]} -eq 0
+          python3 ci/prepare_java_template.py
+
       - name: Test the engine and build صانع التطبيقات
         run: |
           ./gradlew --no-daemon --stacktrace :app:testReleaseUnitTest :app:assembleRelease 2>&1 | tee -a build.log

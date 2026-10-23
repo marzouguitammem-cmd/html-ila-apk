@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "html-ila-apk"
 include(":app")
 include(":runner")
+include(":javarunner")
