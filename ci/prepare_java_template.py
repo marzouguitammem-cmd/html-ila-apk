@@ -38,10 +38,14 @@ def main():
     for needed in (PACKAGE, LABEL, ACTIVITY):
         if needed not in manifest:
             print(manifest); sys.exit("placeholder missing: " + needed)
+    slots = sorted(set(re.findall(r"com\.tammem\.appmaker\.perm\.slot\d+", manifest)))
+    if len(slots) < 8:
+        print(manifest); sys.exit("permission slots missing")
     os.makedirs(ASSETS, exist_ok=True)
     shutil.copyfile(APK, os.path.join(ASSETS, "java_template.apk"))
     with open(os.path.join(ASSETS, "java_template_info.properties"), "w", encoding="utf-8") as f:
-        f.write("package=%s\nlabel=%s\nactivity=%s\nversionName=%s\niconBg=%s\n" % (PACKAGE, LABEL, ACTIVITY, VERSION_NAME, icon))
+        f.write("package=%s\nlabel=%s\nactivity=%s\nversionName=%s\niconBg=%s\npermSlots=%s\n"
+                % (PACKAGE, LABEL, ACTIVITY, VERSION_NAME, icon, ",".join(slots)))
     print("java template ready, icon at", icon)
 
 

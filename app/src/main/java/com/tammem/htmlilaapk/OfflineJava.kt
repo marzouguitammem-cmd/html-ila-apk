@@ -20,6 +20,8 @@ object OfflineJava {
         val versionCode: Int,
         val code: String,
         val iconPng: ByteArray,
+        /** Extra permissions to declare (full names). Those the code asks for are added automatically. */
+        val permissions: List<String> = emptyList(),
     )
 
     /** onPhase: "prepare" | "compile" | "dex" | "pack" | "sign" | "save". */
@@ -48,6 +50,7 @@ object OfflineJava {
             iconPng = spec.iconPng
             replacementDex = dex
             mainActivity = activity
+            permissions = (spec.permissions + CloudJob.detectPermissions(cleanCode)).distinct().toMutableList()
         }
         val keys = SigningKeys.loadOrCreate(File(context.filesDir, "keys"), "AppMaker")
         outApk.parentFile?.let { dir -> dir.mkdirs(); dir.listFiles()?.forEach { if (it != outApk) it.delete() } }

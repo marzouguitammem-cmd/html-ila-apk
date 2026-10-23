@@ -94,6 +94,93 @@ else
   echo "offline java self test failed"; fail=1
 fi
 
+# Find a node in the current screen by text or resource-id regex and print its centre "x y".
+find_xy(){
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+  adb pull /sdcard/ui.xml "$OUT/ui.xml" >/dev/null 2>&1
+  python3 - "$OUT/ui.xml" "$1" <<'PY'
+import re, sys
+xml = open(sys.argv[1], encoding="utf-8", errors="ignore").read()
+pat = re.compile(sys.argv[2])
+for m in re.finditer(r"<node [^>]*>", xml):
+    n = m.group(0)
+    t = re.search(r' text="([^"]*)"', n)
+    r = re.search(r' resource-id="([^"]*)"', n)
+    if (t and pat.search(t.group(1))) or (r and pat.search(r.group(1))):
+        b = re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', n)
+        if b:
+            x1, y1, x2, y2 = map(int, b.groups())
+            print((x1 + x2) // 2, (y1 + y2) // 2)
+            break
+PY
+}
+
+echo "== video player (Java, built offline on the device) with videos on the phone"
+adb shell mkdir -p /sdcard/Movies /sdcard/DCIM/Camera
+adb push ci/fixtures/sample.mp4 /sdcard/Movies/sample_video.mp4 >/dev/null
+adb push ci/fixtures/sample.mp4 /sdcard/DCIM/Camera/clip_two.mp4 >/dev/null
+adb shell content call --uri content://media/external/file --method scan_volume --arg external_primary >/dev/null 2>&1 || true
+adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Movies/sample_video.mp4 >/dev/null 2>&1 || true
+adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/DCIM/Camera/clip_two.mp4 >/dev/null 2>&1 || true
+DREAL=/storage/emulated/0/Android/data/com.tammem.htmlilaapk/files
+adb push ci/fixtures/VideoPlayer.java "$D/VideoPlayer.java" > "$OUT/vp-push.txt" 2>&1
+adb shell ls -la "$D/VideoPlayer.java" >> "$OUT/vp-push.txt" 2>&1
+adb shell rm -f "$D/javaselftest.done" "$D/javaselftest.apk"
+adb shell am force-stop com.tammem.htmlilaapk
+adb shell am start -W -n com.tammem.htmlilaapk/.MainActivity --ez javaselftest true \
+  --es code_file "$DREAL/VideoPlayer.java" --es app_pkg com.tammem.apps.vplayer --es app_name VPlayer >/dev/null
+for i in $(seq 1 120); do
+  adb shell "test -f $D/javaselftest.done" && break
+  sleep 2
+done
+adb shell cat "$D/javaselftest.log" > "$OUT/vplayer-build.log" 2>&1
+cat "$OUT/vplayer-build.log"
+if grep -q '^OK' "$OUT/vplayer-build.log"; then
+  adb pull "$D/javaselftest.apk" "$OUT/vplayer.apk" >/dev/null || fail=1
+  adb install -r "$OUT/vplayer.apk" > "$OUT/install-vplayer.txt" 2>&1 || fail=1
+  cat "$OUT/install-vplayer.txt"
+  adb shell dumpsys package com.tammem.apps.vplayer | grep -iE "READ_MEDIA_VIDEO|READ_EXTERNAL_STORAGE|perm\.slot" > "$OUT/vplayer-perms.txt"
+  cat "$OUT/vplayer-perms.txt"
+  grep -q "READ_MEDIA_VIDEO" "$OUT/vplayer-perms.txt" || { echo "READ_MEDIA_VIDEO not declared"; fail=1; }
+
+  # 1) first launch asks for the permission
+  adb shell am start -n com.tammem.apps.vplayer/com.tammem.vplayer.VideoPlayer >/dev/null
+  sleep 5
+  adb exec-out screencap -p > "$OUT/5a-permission.png"
+  adb shell dumpsys activity activities | grep -E "topResumedActivity" | head -1 > "$OUT/vplayer-top.txt"
+  cat "$OUT/vplayer-top.txt"
+  grep -qi "GrantPermissions" "$OUT/vplayer-top.txt" || { echo "no permission dialog"; fail=1; }
+  # 2) tap "Allow all" (fallback: grant from the shell)
+  xy=$(find_xy "permission_allow_all_button|^Allow all$|^Allow$|permission_allow_button")
+  echo "allow at: $xy"
+  if [ -n "$xy" ]; then adb shell input tap $xy; else adb shell pm grant com.tammem.apps.vplayer android.permission.READ_MEDIA_VIDEO; fi
+  sleep 5
+  adb exec-out screencap -p > "$OUT/5b-library.png"
+  # 3) the library lists both videos
+  find_xy "sample_video" > "$OUT/vplayer-row.txt"
+  grep -q "sample_video" "$OUT/ui.xml" || { echo "library does not show sample_video"; fail=1; }
+  grep -q "clip_two" "$OUT/ui.xml" || { echo "library does not show clip_two"; fail=1; }
+  # 4) tap a video, it plays
+  xy=$(cat "$OUT/vplayer-row.txt")
+  if [ -n "$xy" ]; then
+    adb shell input tap $xy
+    sleep 3
+    adb exec-out screencap -p > "$OUT/5c-player.png"
+    find_xy "⏸" > /dev/null
+    cp "$OUT/ui.xml" "$OUT/ui-player.xml"
+    grep -q "⏸" "$OUT/ui-player.xml" || { echo "player not playing"; fail=1; }
+    grep -q "/ 0:12" "$OUT/ui-player.xml" || { echo "duration not shown"; fail=1; }
+    sleep 5
+    adb exec-out screencap -p > "$OUT/5d-playing.png"
+  else
+    echo "could not find the video row"; fail=1
+  fi
+  adb shell pidof com.tammem.apps.vplayer > "$OUT/pid-vplayer.txt" || { echo "video player died"; fail=1; }
+  rm -f "$OUT/vplayer.apk"
+else
+  echo "video player offline build failed"; fail=1
+fi
+
 adb logcat -d -b crash > "$OUT/crash.txt" 2>&1
 adb logcat -d '*:E' | grep -iE "tammem|webrunner|AndroidRuntime|AppMaker" > "$OUT/errors.txt" 2>&1
 rm -f "$OUT/selftest.apk"

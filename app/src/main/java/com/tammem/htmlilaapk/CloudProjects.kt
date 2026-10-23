@@ -67,6 +67,9 @@ object CloudJob {
     val ALL_PERMISSIONS = listOf(
         "INTERNET" to "الإنترنت",
         "NETWORK_STATE" to "حالة الشبكة",
+        "VIDEOS" to "الفيديوهات",
+        "IMAGES" to "التصاور",
+        "AUDIO" to "الأغاني",
         "STORAGE_READ" to "قراءة الملفات",
         "STORAGE_WRITE" to "كتابة الملفات",
         "MANAGE_STORAGE" to "كل الملفات",
@@ -77,6 +80,42 @@ object CloudJob {
         "NOTIFICATIONS" to "الإشعارات",
         "INSTALL_APPS" to "تثبيت تطبيقات",
     )
+
+    private val KEY_TO_PERMISSION = mapOf(
+        "INTERNET" to "android.permission.INTERNET",
+        "NETWORK_STATE" to "android.permission.ACCESS_NETWORK_STATE",
+        "VIDEOS" to "android.permission.READ_MEDIA_VIDEO",
+        "IMAGES" to "android.permission.READ_MEDIA_IMAGES",
+        "AUDIO" to "android.permission.READ_MEDIA_AUDIO",
+        "STORAGE_READ" to "android.permission.READ_EXTERNAL_STORAGE",
+        "STORAGE_WRITE" to "android.permission.WRITE_EXTERNAL_STORAGE",
+        "MANAGE_STORAGE" to "android.permission.MANAGE_EXTERNAL_STORAGE",
+        "CAMERA" to "android.permission.CAMERA",
+        "MICROPHONE" to "android.permission.RECORD_AUDIO",
+        "LOCATION" to "android.permission.ACCESS_FINE_LOCATION",
+        "VIBRATE" to "android.permission.VIBRATE",
+        "NOTIFICATIONS" to "android.permission.POST_NOTIFICATIONS",
+        "INSTALL_APPS" to "android.permission.REQUEST_INSTALL_PACKAGES",
+    )
+
+    /** "VIDEOS" -> "android.permission.READ_MEDIA_VIDEO"; full names pass through. */
+    fun fullPermission(key: String): String =
+        KEY_TO_PERMISSION[key] ?: if (key.contains('.')) key else "android.permission.$key"
+
+    /**
+     * Permissions the code itself asks for (Manifest.permission.X or "android.permission.X"),
+     * so they get declared automatically — the user doesn't need to know about manifests.
+     */
+    fun detectPermissions(code: String): Set<String> {
+        val out = linkedSetOf<String>()
+        Regex("""Manifest\.permission\.([A-Z][A-Z0-9_]+)""").findAll(code).forEach { out += "android.permission." + it.groupValues[1] }
+        Regex(""""(android\.permission\.[A-Z][A-Z0-9_]+)"""").findAll(code).forEach { out += it.groupValues[1] }
+        return out
+    }
+
+    /** Everything to declare: the ticked chips plus what the code asks for. */
+    fun permissionsFor(p: CloudProject, code: String): List<String> =
+        (p.permissions.map { fullPermission(it) } + detectPermissions(code)).distinct()
 
     fun packageOf(code: String): String? =
         Regex("""\bpackage\s+([\w.]+)\s*;""").find(code)?.groupValues?.get(1)
@@ -95,7 +134,7 @@ object CloudJob {
             .put("packageName", p.packageName)
             .put("versionCode", versionCode)
             .put("minSdk", 24).put("targetSdk", 34)
-            .put("permissions", org.json.JSONArray(p.permissions.toList()))
+            .put("permissions", org.json.JSONArray(permissionsFor(p, if (p.source == CloudProject.SOURCE_ZIP) "" else code)))
         val out = LinkedHashMap<String, ByteArray>()
         if (p.source == CloudProject.SOURCE_ZIP) {
             job.put("type", "gradle")

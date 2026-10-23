@@ -47,6 +47,8 @@ public final class ApkMaker {
         public final String iconPath;
         /** Launcher activity placeholder (Java template only); null for the HTML runner. */
         public final String activityPlaceholder;
+        /** uses-permission placeholders that can be renamed to real permissions (Java template). */
+        public final List<String> permSlots;
 
         public Template(File apk, Properties p) {
             this.apk = apk;
@@ -56,6 +58,9 @@ public final class ApkMaker {
             this.iconPath = req(p, "iconBg");
             String act = p.getProperty("activity");
             this.activityPlaceholder = (act == null || act.trim().isEmpty()) ? null : act.trim();
+            List<String> slots = new ArrayList<>();
+            for (String x : p.getProperty("permSlots", "").split(",")) if (!x.trim().isEmpty()) slots.add(x.trim());
+            this.permSlots = Collections.unmodifiableList(slots);
         }
 
         public static Template load(File apk, InputStream info) throws IOException {
@@ -87,6 +92,8 @@ public final class ApkMaker {
         public byte[] replacementDex;
         /** Java mode: the user's launcher activity, e.g. com.example.MainActivity. */
         public String mainActivity;
+        /** Java mode: full permission names to declare, e.g. android.permission.READ_MEDIA_VIDEO. */
+        public List<String> permissions = new ArrayList<>();
     }
 
     public interface Progress {
@@ -157,6 +164,23 @@ public final class ApkMaker {
             Map<String, String> act = new HashMap<>();
             act.put(t.activityPlaceholder, s.mainActivity);
             if (x.replaceStrings(act) == 0) throw new IllegalStateException("Template activity not found");
+        }
+        if (s.permissions != null && !s.permissions.isEmpty()) {
+            List<String> wanted = new ArrayList<>();
+            for (String perm : s.permissions) {
+                if (perm == null) continue;
+                String n = perm.trim();
+                if (n.isEmpty() || n.equals("android.permission.INTERNET") || wanted.contains(n)) continue;
+                wanted.add(n);
+            }
+            if (wanted.size() > t.permSlots.size()) {
+                throw new IllegalArgumentException("Too many permissions: " + wanted.size() + " > " + t.permSlots.size());
+            }
+            Map<String, String> perms = new HashMap<>();
+            for (int i = 0; i < wanted.size(); i++) perms.put(t.permSlots.get(i), wanted.get(i));
+            if (!perms.isEmpty() && x.replaceStrings(perms) != perms.size()) {
+                throw new IllegalStateException("Template permission slots not found");
+            }
         }
         if (!x.setIntAttribute("manifest", "versionCode", s.versionCode)) {
             throw new IllegalStateException("versionCode not found");

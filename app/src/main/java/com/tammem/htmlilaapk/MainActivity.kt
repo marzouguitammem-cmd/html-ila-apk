@@ -209,7 +209,7 @@ class MainActivity : ComponentActivity() {
             return
         }
         if (intent.getBooleanExtra("javaselftest", false)) {
-            runJavaSelfTest()
+            runJavaSelfTest(intent.getStringExtra("code_file"), intent.getStringExtra("app_pkg"), intent.getStringExtra("app_name"))
             return
         }
         when (intent.action) {
@@ -406,7 +406,12 @@ class MainActivity : ComponentActivity() {
     }
 
     /** Build-machine test for the OFFLINE Java engine: compiles a tiny app on-device. */
-    private fun runJavaSelfTest() {
+    /**
+     * Build-machine test for the OFFLINE Java engine. With no extras it builds a tiny
+     * built-in app and presses Install; with code_file it builds that Java file instead
+     * (used to build the video player on the emulator).
+     */
+    private fun runJavaSelfTest(codeFile: String?, appPkg: String?, appName: String?) {
         val dir = getExternalFilesDir(null) ?: filesDir
         File(dir, "javaselftest.done").delete()
         lifecycleScope.launch(Dispatchers.IO) {
@@ -435,11 +440,21 @@ class MainActivity : ComponentActivity() {
                       }
                     }
                 """.trimIndent()
-                val icon = IconMaker.png(IconMaker.auto("JST", 5))
-                val spec = OfflineJava.Spec("اختبار Java", "com.tammem.apps.jselftest", 1, javaCode, icon)
+                val custom = codeFile != null
+                val code = if (custom) File(codeFile!!).readText() else javaCode
+                val name = appName ?: "اختبار Java"
+                val icon = IconMaker.png(IconMaker.auto(name, 5))
+                val spec = OfflineJava.Spec(name, appPkg ?: "com.tammem.apps.jselftest", 1, code, icon)
                 // Build into the same folder the real screen uses, then press "Install" for real.
                 val real = File(File(filesDir, "offline_out/jselftest"), "javaselftest.apk")
                 val r = OfflineJava.build(this@MainActivity, spec, real) { }
+                if (custom) {
+                    r.apk.copyTo(File(dir, "javaselftest.apk"), overwrite = true)
+                    log.append("OK size=").append(r.apk.length()).append(" custom")
+                    File(dir, "javaselftest.log").writeText(log.toString())
+                    File(dir, "javaselftest.done").writeText("1")
+                    return@launch
+                }
                 // Every APK folder must be shareable without the copy fallback.
                 for (sub in listOf("out", "cloud_out", "offline_out")) {
                     val f = File(File(filesDir, "$sub/_probe"), "p.apk").apply { parentFile?.mkdirs(); writeBytes(ByteArray(4)) }

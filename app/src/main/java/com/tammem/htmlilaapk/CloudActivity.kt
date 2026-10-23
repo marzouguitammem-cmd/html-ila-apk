@@ -223,7 +223,8 @@ class CloudActivity : ComponentActivity() {
                 val version = p.versionCode + 1
                 val icon = IconMaker.png(IconMaker.auto(p.name, 1))
                 val out = File(File(filesDir, "offline_out/${p.id}"), CloudJob.safeApkName(p.name))
-                val spec = OfflineJava.Spec(p.name, p.packageName, version, code, icon)
+                val spec = OfflineJava.Spec(p.name, p.packageName, version, code, icon,
+                    permissions = p.permissions.map { CloudJob.fullPermission(it) })
                 val res = withContext(Dispatchers.IO) {
                     OfflineJava.build(this@CloudActivity, spec, out) { ph -> runOnUiThread { offlinePhase = ph } }
                 }
@@ -295,7 +296,7 @@ class CloudActivity : ComponentActivity() {
                     )
                 }
                 Section("٢", "المحتوى") { SourcePicker() }
-                if (!offline) Section("٣", "الأذونات") { Permissions() }
+                Section("٣", "الأذونات") { Permissions() }
 
                 Button(
                     onClick = { build() }, enabled = !building,
@@ -428,6 +429,13 @@ class CloudActivity : ComponentActivity() {
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     private fun Permissions() {
+        val detected = remember(code) { CloudJob.detectPermissions(code) }
+        if (detected.isNotEmpty() && project.source == CloudProject.SOURCE_CODE) {
+            Text(
+                "✔ الكود يطلب: " + detected.joinToString("، ") { it.substringAfterLast('.') } + " — نزيدوهم وحدهم",
+                fontSize = 13.sp, color = MaterialTheme.colorScheme.secondary,
+            )
+        }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CloudJob.ALL_PERMISSIONS.forEach { (key, label) ->
                 val on = key in project.permissions
