@@ -28,9 +28,18 @@ jobs:
           D8="$BT/lib/d8.jar"
           AJ="$ANDROID_HOME/platforms/android-34/android.jar"
           [ -f "$AJ" ] || AJ=$(ls -d "$ANDROID_HOME"/platforms/android-*/android.jar | sort -V | tail -1)
-          for V in 3.40.0 3.39.0 3.38.0 3.33.0; do
-            curl -fsSL "https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/$V/ecj-$V.jar" -o ecj.jar && break
+          # Newer ECJ uses java.lang.Runtime$Version (JDK 9+), which ART lacks. Pick the
+          # newest ECJ whose classes never reference it, so it runs on Android.
+          pick=""
+          for V in 3.33.0 3.32.0 3.31.0 3.30.0 3.29.0 3.28.0 3.27.0 3.26.0 3.24.0 3.21.0 3.18.0 3.14.0; do
+            curl -fsSL "https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/$V/ecj-$V.jar" -o cand.jar || continue
+            if unzip -p cand.jar '*.class' 2>/dev/null | grep -qaF 'Runtime$Version'; then
+              echo "ecj $V references Runtime\$Version — skip"
+            else
+              cp cand.jar ecj.jar; pick=$V; echo "picked ecj $V"; break
+            fi
           done
+          [ -n "$pick" ] || { echo "no suitable ECJ found"; exit 1; }
           # ECJ needs the java.compiler API (javax.lang.model / javax.tools /
           # javax.annotation.processing), absent on Android. The JDK 17 version's
           # SourceVersion.<clinit> calls Runtime.version() (not on ART), so take the
