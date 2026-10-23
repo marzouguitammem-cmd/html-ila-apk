@@ -8,4 +8,3 @@ local.properties
 app/src/main/assets/template_info.properties
 work/
 out/
-jobs/*/result.json
