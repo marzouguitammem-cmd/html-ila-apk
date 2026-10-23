@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:label="OfflineProbe" android:icon="@android:drawable/sym_def_app_icon">
+    <application android:label="OfflineProbe" android:largeHeap="true" android:icon="@android:drawable/sym_def_app_icon">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

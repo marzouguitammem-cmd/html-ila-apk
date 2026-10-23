@@ -70,23 +70,26 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
-            set +e
-            adb logcat -c || true
-            adb install -r offline-probe/app/build/outputs/apk/debug/app-debug.apk 2>&1 | tee "$GITHUB_WORKSPACE/install.txt"
-            adb shell am start -n com.tammem.offlineprobe/.MainActivity
+            W="$GITHUB_WORKSPACE"
+            adb logcat -c 2>/dev/null || true
+            APK=offline-probe/app/build/outputs/apk/debug/app-debug.apk
+            ls -la "$APK" > "$W/install.txt" 2>&1 || true
+            adb install -r "$APK" >> "$W/install.txt" 2>&1 || true
+            adb shell am start -n com.tammem.offlineprobe/.MainActivity >> "$W/install.txt" 2>&1 || true
             D=/sdcard/Android/data/com.tammem.offlineprobe/files
             ok=unknown
-            for i in $(seq 1 100); do
-              if adb shell "test -f $D/PASS" 2>/dev/null; then ok=1; break; fi
-              if adb shell "test -f $D/FAIL" 2>/dev/null; then ok=0; break; fi
+            for i in $(seq 1 120); do
+              adb shell "test -f $D/PASS" 2>/dev/null && { ok=1; break; }
+              adb shell "test -f $D/FAIL" 2>/dev/null && { ok=0; break; }
               sleep 3
             done
-            adb pull "$D/probe.log" "$GITHUB_WORKSPACE/probe.log" 2>/dev/null || echo "(no probe.log — app likely crashed before writing)" > "$GITHUB_WORKSPACE/probe.log"
-            adb logcat -d 2>/dev/null | grep -iE "offlineprobe|AndroidRuntime|art |dex|OfflineCompiler" | tail -80 > "$GITHUB_WORKSPACE/logcat.txt" || true
-            echo "ok=$ok" >> "$GITHUB_WORKSPACE/probe.log"
-            echo "======== probe.log ========"; cat "$GITHUB_WORKSPACE/probe.log"
-            echo "======== logcat ========"; cat "$GITHUB_WORKSPACE/logcat.txt"
-            exit 0
+            adb pull "$D/probe.log" "$W/probe.log" 2>/dev/null || echo "(no probe.log; STARTED=$(adb shell test -f $D/STARTED 2>/dev/null && echo yes || echo no))" > "$W/probe.log"
+            adb logcat -d 2>/dev/null | grep -iE "offlineprobe|AndroidRuntime|OfflineCompiler|dalvikvm|E art|OutOfMemory|FATAL" | tail -120 > "$W/logcat.txt" 2>/dev/null || true
+            [ -s "$W/logcat.txt" ] || echo "(logcat empty)" > "$W/logcat.txt"
+            echo "ok=$ok" >> "$W/probe.log"
+            echo "===== probe.log ====="; cat "$W/probe.log"
+            echo "===== logcat ====="; cat "$W/logcat.txt"
+            true
 
       - name: Publish probe.log to probe-results branch
         if: always()

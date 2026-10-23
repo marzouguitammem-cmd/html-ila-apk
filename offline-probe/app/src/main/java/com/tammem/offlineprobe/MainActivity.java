@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
         sv.addView(tv);
         setContentView(sv);
 
+        writeMarker("STARTED", "launched\n");
         new Thread(() -> {
             OfflineCompiler c = new OfflineCompiler(this);
             long t0 = System.currentTimeMillis();
@@ -35,16 +36,19 @@ public class MainActivity extends Activity {
     }
 
     private void writeResult(boolean pass, String report) {
+        writeMarker("probe.log", report);
+        writeMarker(pass ? "PASS" : "FAIL", "1");
+    }
+
+    private void writeMarker(String name, String content) {
         try {
             File dir = getExternalFilesDir(null);
             if (dir == null) dir = getFilesDir();
-            try (FileOutputStream o = new FileOutputStream(new File(dir, "probe.log"))) {
-                o.write(report.getBytes("UTF-8"));
+            dir.mkdirs();
+            try (FileOutputStream o = new FileOutputStream(new File(dir, name))) {
+                o.write(content.getBytes("UTF-8"));
             }
-            try (FileOutputStream o = new FileOutputStream(new File(dir, pass ? "PASS" : "FAIL"))) {
-                o.write(new byte[]{'1'});
-            }
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 }
