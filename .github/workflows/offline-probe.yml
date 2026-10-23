@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   probe:
@@ -70,8 +70,9 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
-            adb wait-for-device
-            adb install -r offline-probe/app/build/outputs/apk/debug/app-debug.apk
+            set +e
+            adb logcat -c || true
+            adb install -r offline-probe/app/build/outputs/apk/debug/app-debug.apk 2>&1 | tee "$GITHUB_WORKSPACE/install.txt"
             adb shell am start -n com.tammem.offlineprobe/.MainActivity
             D=/sdcard/Android/data/com.tammem.offlineprobe/files
             ok=unknown
@@ -80,16 +81,21 @@ jobs:
               if adb shell "test -f $D/FAIL" 2>/dev/null; then ok=0; break; fi
               sleep 3
             done
-            adb pull "$D/probe.log" "$GITHUB_WORKSPACE/probe.log" 2>/dev/null || echo "(no probe.log)" > "$GITHUB_WORKSPACE/probe.log"
-            echo "======== probe.log ========"; cat "$GITHUB_WORKSPACE/probe.log"; echo "==========================="
-            echo "ok=$ok"
+            adb pull "$D/probe.log" "$GITHUB_WORKSPACE/probe.log" 2>/dev/null || echo "(no probe.log — app likely crashed before writing)" > "$GITHUB_WORKSPACE/probe.log"
+            adb logcat -d 2>/dev/null | grep -iE "offlineprobe|AndroidRuntime|art |dex|OfflineCompiler" | tail -80 > "$GITHUB_WORKSPACE/logcat.txt" || true
+            echo "ok=$ok" >> "$GITHUB_WORKSPACE/probe.log"
+            echo "======== probe.log ========"; cat "$GITHUB_WORKSPACE/probe.log"
+            echo "======== logcat ========"; cat "$GITHUB_WORKSPACE/logcat.txt"
+            exit 0
 
       - name: Publish probe.log to probe-results branch
         if: always()
         run: |
           cd "$GITHUB_WORKSPACE"
           [ -f probe.log ] || echo "no probe.log produced" > probe.log
-          rm -rf probe-out && mkdir -p probe-out && cp probe.log probe-out/
+          [ -f logcat.txt ] || echo "(no logcat)" > logcat.txt
+          [ -f install.txt ] || echo "(no install log)" > install.txt
+          rm -rf probe-out && mkdir -p probe-out && cp probe.log logcat.txt install.txt probe-out/
           cd probe-out
           git init -q -b probe-results
           git config user.name ci; git config user.email ci@users.noreply.github.com
