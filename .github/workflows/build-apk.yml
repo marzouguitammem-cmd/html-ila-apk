@@ -6,6 +6,8 @@ on:
     paths-ignore:
       - 'jobs/**'
       - 'cloud/**'
+      - 'offline-probe/**'
+      - '.github/workflows/offline-probe.yml'
       - 'README.md'
   workflow_dispatch:
 

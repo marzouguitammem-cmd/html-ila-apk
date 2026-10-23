@@ -11,12 +11,32 @@ fail=0
 adb wait-for-device
 adb logcat -c || true
 
+# Launch a package and confirm it is actually running, tolerating a slow emulator:
+# retry pidof for ~30s and re-launch once before giving up.
+ensure_running(){
+  local pkg="$1" comp="$2" shot="$3"
+  for attempt in 1 2; do
+    adb shell am start -W -n "$comp" >/dev/null 2>&1
+    for i in $(seq 1 12); do
+      sleep 2
+      pid=$(adb shell pidof "$pkg" 2>/dev/null | tr -d '\r')
+      if [ -n "$pid" ]; then
+        echo "$pid" > "$OUT/pid-$shot.txt"
+        sleep 2
+        adb exec-out screencap -p > "$OUT/$shot.png"
+        return 0
+      fi
+    done
+  done
+  echo "$pkg not running after retries"
+  adb exec-out screencap -p > "$OUT/$shot.png"
+  adb logcat -d | grep -iE "$pkg|AndroidRuntime" | tail -40 > "$OUT/$shot-logcat.txt"
+  return 1
+}
+
 echo "== sample app made on the build machine"
 adb install -r apks/sample.apk > "$OUT/install-sample.txt" 2>&1 || fail=1
-adb shell am start -W -n com.tammem.apps.citest/com.tammem.webrunner.MainActivity >> "$OUT/install-sample.txt" 2>&1
-sleep 10
-adb exec-out screencap -p > "$OUT/1-sample-app.png"
-adb shell pidof com.tammem.apps.citest > "$OUT/pid-sample.txt" || { echo "sample app not running"; fail=1; }
+ensure_running com.tammem.apps.citest com.tammem.apps.citest/com.tammem.webrunner.MainActivity 1-sample-app || fail=1
 adb shell dumpsys package com.tammem.apps.citest | grep -E "versionCode|versionName|signatures" > "$OUT/pkg-sample.txt"
 
 echo "== builder app"
@@ -42,10 +62,7 @@ grep -q '^OK' "$OUT/selftest.log" || { echo "self test failed"; fail=1; }
 adb pull "$D/selftest.apk" "$OUT/selftest.apk" || fail=1
 adb install -r "$OUT/selftest.apk" > "$OUT/install-selftest.txt" 2>&1 || fail=1
 cat "$OUT/install-selftest.txt"
-adb shell am start -W -n com.tammem.apps.selftest/com.tammem.webrunner.MainActivity >> "$OUT/install-selftest.txt" 2>&1
-sleep 10
-adb exec-out screencap -p > "$OUT/3-selftest-app.png"
-adb shell pidof com.tammem.apps.selftest > "$OUT/pid-selftest.txt" || { echo "on-device app not running"; fail=1; }
+ensure_running com.tammem.apps.selftest com.tammem.apps.selftest/com.tammem.webrunner.MainActivity 3-selftest-app || fail=1
 
 adb logcat -d -b crash > "$OUT/crash.txt" 2>&1
 adb logcat -d '*:E' | grep -iE "tammem|webrunner|AndroidRuntime|AppMaker" > "$OUT/errors.txt" 2>&1
