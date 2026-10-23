@@ -7,6 +7,7 @@ on:
       - 'jobs/**'
       - 'cloud/**'
       - 'offline-probe/**'
+      - 'javarunner/**'
       - '.github/workflows/offline-probe.yml'
       - 'README.md'
   workflow_dispatch:
