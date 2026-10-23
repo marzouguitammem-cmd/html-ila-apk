@@ -64,8 +64,10 @@ adb install -r "$OUT/selftest.apk" > "$OUT/install-selftest.txt" 2>&1 || fail=1
 cat "$OUT/install-selftest.txt"
 ensure_running com.tammem.apps.selftest com.tammem.apps.selftest/com.tammem.webrunner.MainActivity 3-selftest-app || fail=1
 
-echo "== build a Java app on the device (offline engine)"
+echo "== build a Java app on the device (offline engine) and press Install"
 adb shell am force-stop com.tammem.htmlilaapk
+# let the app open Android's installer (the user grants this once on a real phone)
+adb shell appops set com.tammem.htmlilaapk REQUEST_INSTALL_PACKAGES allow || true
 adb shell am start -W -n com.tammem.htmlilaapk/.MainActivity --ez javaselftest true
 for i in $(seq 1 120); do
   adb shell "test -f $D/javaselftest.done" && break
@@ -73,6 +75,15 @@ for i in $(seq 1 120); do
 done
 adb shell cat "$D/javaselftest.log" > "$OUT/javaselftest.log" 2>&1
 cat "$OUT/javaselftest.log"
+sleep 3
+adb exec-out screencap -p > "$OUT/4a-installer.png"
+adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | head -3 > "$OUT/installer-top.txt"
+cat "$OUT/installer-top.txt"
+# The app must still be alive (it crashed here before) and the installer must be on top.
+grep -q 'install=STARTED' "$OUT/javaselftest.log" || { echo "Install button did not start the installer"; fail=1; }
+grep -qiE "packageinstaller|InstallStaging|PackageInstaller" "$OUT/installer-top.txt" || { echo "installer not on screen"; fail=1; }
+adb shell pidof com.tammem.htmlilaapk > /dev/null || { echo "builder app died after Install"; fail=1; }
+adb shell input keyevent KEYCODE_BACK; sleep 1; adb shell input keyevent KEYCODE_BACK
 if grep -q '^OK' "$OUT/javaselftest.log"; then
   adb pull "$D/javaselftest.apk" "$OUT/javaselftest.apk" || fail=1
   adb install -r "$OUT/javaselftest.apk" > "$OUT/install-java.txt" 2>&1 || fail=1

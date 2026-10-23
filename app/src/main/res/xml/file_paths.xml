@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Every folder where built APKs are saved must be listed, or Install/Share crash. -->
 <paths>
     <files-path name="out" path="out/" />
+    <files-path name="cloud_out" path="cloud_out/" />
+    <files-path name="offline_out" path="offline_out/" />
 </paths>

@@ -437,8 +437,18 @@ class MainActivity : ComponentActivity() {
                 """.trimIndent()
                 val icon = IconMaker.png(IconMaker.auto("JST", 5))
                 val spec = OfflineJava.Spec("اختبار Java", "com.tammem.apps.jselftest", 1, javaCode, icon)
-                val r = OfflineJava.build(this@MainActivity, spec, File(dir, "javaselftest.apk")) { }
-                log.append("OK size=").append(r.apk.length())
+                // Build into the same folder the real screen uses, then press "Install" for real.
+                val real = File(File(filesDir, "offline_out/jselftest"), "javaselftest.apk")
+                val r = OfflineJava.build(this@MainActivity, spec, real) { }
+                // Every APK folder must be shareable without the copy fallback.
+                for (sub in listOf("out", "cloud_out", "offline_out")) {
+                    val f = File(File(filesDir, "$sub/_probe"), "p.apk").apply { parentFile?.mkdirs(); writeBytes(ByteArray(4)) }
+                    androidx.core.content.FileProvider.getUriForFile(this@MainActivity, "$packageName.files", f)
+                    f.parentFile?.deleteRecursively()
+                }
+                val installed = withContext(Dispatchers.Main) { Builder.install(this@MainActivity, r.apk) }
+                r.apk.copyTo(File(dir, "javaselftest.apk"), overwrite = true)
+                log.append("OK size=").append(r.apk.length()).append(" install=").append(installed)
             } catch (t: Throwable) {
                 log.append("FAIL ").append(Log.getStackTraceString(t))
             }
@@ -770,13 +780,14 @@ class MainActivity : ComponentActivity() {
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("✅ التطبيق واجد!", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                val mb = String.format(Locale.ROOT, "%.1f", r.apk.length() / 1048576.0)
-                Text("${r.apk.name} • $mb MB • نسخة ${r.versionCode}")
+                Text("${r.apk.name} • ${Builder.sizeLabel(r.apk.length())} • نسخة ${r.versionCode}")
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(
                         onClick = {
-                            if (!Builder.install(this@MainActivity, r.apk)) {
-                                toast("فعّل «السماح من هذا المصدر» ورجع اضغط ثبّت")
+                            when (Builder.install(this@MainActivity, r.apk)) {
+                                Builder.InstallResult.NEEDS_PERMISSION -> toast("فعّل «السماح من هذا المصدر» ورجع اضغط ثبّت")
+                                Builder.InstallResult.FAILED -> toast("ما نجمتش نحلّ المثبّت — جرّب «شارك» ولا عاود ابني")
+                                else -> {}
                             }
                         },
                         modifier = Modifier.weight(1f).height(52.dp),
@@ -787,7 +798,7 @@ class MainActivity : ComponentActivity() {
                         Text("ثبّت", fontWeight = FontWeight.Bold)
                     }
                     OutlinedButton(
-                        onClick = { Builder.share(this@MainActivity, r.apk) },
+                        onClick = { if (!Builder.share(this@MainActivity, r.apk)) toast("ما نجمتش نشارك الملف") },
                         modifier = Modifier.weight(1f).height(52.dp),
                         shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.4f)),

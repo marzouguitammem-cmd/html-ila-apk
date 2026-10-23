@@ -17,6 +17,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.Locale
 import java.util.zip.ZipInputStream
 
 /** Turns a [Project] into an installable APK, and moves APK files around. */
@@ -173,34 +174,66 @@ object Builder {
         }
     }
 
-    fun uriFor(context: Context, file: File): Uri =
-        FileProvider.getUriForFile(context, context.packageName + ".files", file)
-
-    /** Opens Android's installer. Returns false if we first need the "unknown apps" permission. */
-    fun install(context: Context, apk: File): Boolean {
-        if (!context.packageManager.canRequestPackageInstalls()) {
-            val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + context.packageName))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            try {
-                context.startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                context.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
-            return false
+    /**
+     * A content:// link the installer / other apps can read. If the file sits outside
+     * the folders declared in file_paths.xml, it is copied into out/_share first, so a
+     * new save location can never crash Install or Share again.
+     */
+    fun uriFor(context: Context, file: File): Uri {
+        val authority = context.packageName + ".files"
+        return try {
+            FileProvider.getUriForFile(context, authority, file)
+        } catch (e: IllegalArgumentException) {
+            val dir = File(context.filesDir, "out/_share").apply { mkdirs() }
+            val copy = File(dir, file.name)
+            file.copyTo(copy, overwrite = true)
+            FileProvider.getUriForFile(context, authority, copy)
         }
-        val intent = Intent(Intent.ACTION_VIEW)
-            .setDataAndType(uriFor(context, apk), APK_MIME)
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
-        return true
     }
 
-    fun share(context: Context, apk: File) {
+    /** Human size: "35 KB" or "7.1 MB". */
+    fun sizeLabel(bytes: Long): String =
+        if (bytes < 1024 * 1024) "${maxOf(1, (bytes + 512) / 1024)} KB"
+        else String.format(Locale.ROOT, "%.1f MB", bytes / 1048576.0)
+
+    enum class InstallResult { STARTED, NEEDS_PERMISSION, FAILED }
+
+    /** Opens Android's installer. Never throws: problems come back as FAILED. */
+    fun install(context: Context, apk: File): InstallResult {
+        try {
+            if (!apk.isFile || apk.length() < 1000) return InstallResult.FAILED
+            if (!context.packageManager.canRequestPackageInstalls()) {
+                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + context.packageName))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    context.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    context.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                }
+                return InstallResult.NEEDS_PERMISSION
+            }
+            val intent = Intent(Intent.ACTION_VIEW)
+                .setDataAndType(uriFor(context, apk), APK_MIME)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            return InstallResult.STARTED
+        } catch (e: Exception) {
+            android.util.Log.e("AppMaker", "install failed", e)
+            return InstallResult.FAILED
+        }
+    }
+
+    /** Returns false if sharing could not start. Never throws. */
+    fun share(context: Context, apk: File): Boolean = try {
         val intent = Intent(Intent.ACTION_SEND)
             .setType(APK_MIME)
             .putExtra(Intent.EXTRA_STREAM, uriFor(context, apk))
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         context.startActivity(Intent.createChooser(intent, apk.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
+    } catch (e: Exception) {
+        android.util.Log.e("AppMaker", "share failed", e)
+        false
     }
 
     // ------------------------------------------------------------------ zip import

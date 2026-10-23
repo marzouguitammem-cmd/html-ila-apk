@@ -491,14 +491,19 @@ class CloudActivity : ComponentActivity() {
         Card(shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("✅ التطبيق واجد!", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                val mb = String.format(java.util.Locale.ROOT, "%.1f", apk.length() / 1048576.0)
-                Text("${apk.name} • $mb MB" + (if (resultVersion.isNotBlank()) " • نسخة $resultVersion" else ""))
+                Text("${apk.name} • ${Builder.sizeLabel(apk.length())}" + (if (resultVersion.isNotBlank()) " • نسخة $resultVersion" else ""))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = { if (!Builder.install(this@CloudActivity, apk)) toast("فعّل «السماح من هذا المصدر»") },
+                    Button(onClick = {
+                        when (Builder.install(this@CloudActivity, apk)) {
+                            Builder.InstallResult.NEEDS_PERMISSION -> toast("فعّل «السماح من هذا المصدر» ورجع اضغط ثبّت")
+                            Builder.InstallResult.FAILED -> toast("ما نجمتش نحلّ المثبّت — جرّب «شارك» ولا عاود ابني")
+                            else -> {}
+                        }
+                    },
                         modifier = Modifier.weight(1f).height(52.dp), shape = RoundedCornerShape(14.dp)) {
                         Icon(Icons.Default.Check, null); Spacer(Modifier.width(6.dp)); Text("ثبّت", fontWeight = FontWeight.Bold)
                     }
-                    OutlinedButton(onClick = { Builder.share(this@CloudActivity, apk) },
+                    OutlinedButton(onClick = { if (!Builder.share(this@CloudActivity, apk)) toast("ما نجمتش نشارك الملف") },
                         modifier = Modifier.weight(1f).height(52.dp), shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.4f))) {
                         Icon(Icons.Default.Share, null); Spacer(Modifier.width(6.dp)); Text("شارك")
