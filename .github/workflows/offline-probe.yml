@@ -66,6 +66,11 @@ jobs:
           mk ecj.jar ecj_dex "$OUT/ecj.dex.jar"
           mk "$D8" d8_dex "$OUT/d8.dex.jar"
           cp "$AJ" "$OUT/android.jar"
+          # Compiling lambdas needs java.lang.invoke.* at compile time (android.jar
+          # omits it; D8 desugars at runtime). Ship a small stub jar for ECJ's bootclasspath.
+          mkdir -p ls
+          unzip -q -o "$RT8" 'java/lang/invoke/*' -d ls
+          ( cd ls && jar cf "$GITHUB_WORKSPACE/$OUT/lambdastub.jar" . )
           rm -f "$OUT/.keep"
           echo "contents of ecj.dex.jar (sample):"; unzip -l "$OUT/ecj.dex.jar" | grep -E "classes.*dex|messages.properties" | head
           du -m "$OUT"/* | sort -n

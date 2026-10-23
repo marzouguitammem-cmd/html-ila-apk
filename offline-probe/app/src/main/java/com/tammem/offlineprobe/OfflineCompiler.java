@@ -33,7 +33,7 @@ public class OfflineCompiler {
     public boolean ecjOk, d8Ok;
 
     private final Context ctx;
-    private File work, toolDir, androidJar;
+    private File work, toolDir, androidJar, lambdaStub;
 
     public OfflineCompiler(Context ctx) {
         this.ctx = ctx;
@@ -66,6 +66,7 @@ public class OfflineCompiler {
             File ecjJar = copyAsset("toolchain/ecj.dex.jar", new File(toolDir, "ecj.dex.jar"));
             File d8Jar = copyAsset("toolchain/d8.dex.jar", new File(toolDir, "d8.dex.jar"));
             androidJar = copyAsset("toolchain/android.jar", new File(toolDir, "android.jar"));
+            lambdaStub = copyAsset("toolchain/lambdastub.jar", new File(toolDir, "lambdastub.jar"));
             line("tools: ecj=" + mb(ecjJar) + "MB d8=" + mb(d8Jar) + "MB android=" + mb(androidJar) + "MB");
 
             File srcDir = new File(work, "src/com/example");
@@ -125,6 +126,7 @@ public class OfflineCompiler {
         // -proc:none skips annotation processing, whose setup needs newer
         // SourceVersion constants (RELEASE_17) we deliberately don't ship.
         cmd.append("-bootclasspath ").append(androidJar.getAbsolutePath())
+           .append(java.io.File.pathSeparator).append(lambdaStub.getAbsolutePath())
            .append(" -source 8 -target 8 -proc:none -nowarn -d ").append(out.getAbsolutePath());
         for (Path p : sources) cmd.append(' ').append(p.toString());
 
