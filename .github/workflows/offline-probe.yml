@@ -1,10 +1,9 @@
 name: Offline toolchain probe
 
-# Feasibility test for the OFFLINE Java engine (②):
-#  - assemble ECJ + D8 + android.jar and dex the tools for on-device use
-#  - build a tiny probe app that bundles them
-#  - on an emulator, COMPILE a Java file (with a lambda) to a classes.dex,
-#    fully offline, and report PASS/FAIL.
+# Feasibility test for the OFFLINE Java engine (②). Split into two jobs like the
+# working smoke test: build the probe (with the dexed toolchain) in one job, then
+# run it on a clean emulator job. It compiles a Java file (with a lambda) to a
+# classes.dex fully offline and reports PASS/FAIL + logs on a branch.
 on:
   workflow_dispatch:
 
@@ -12,17 +11,14 @@ permissions:
   contents: write
 
 jobs:
-  probe:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble + dex the toolchain into the probe assets
@@ -45,7 +41,7 @@ jobs:
           (cd d8_dex && zip -q "$GITHUB_WORKSPACE/$OUT/d8.dex.jar" classes*.dex)
           cp "$AJ" "$OUT/android.jar"
           rm -f "$OUT/.keep"
-          echo "toolchain sizes:"; du -m "$OUT"/* | sort -n
+          du -m "$OUT"/* | sort -n
 
       - name: Build the probe APK
         run: |
@@ -53,6 +49,22 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon --stacktrace assembleDebug
           ls -la app/build/outputs/apk/debug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-apk
+          path: offline-probe/app/build/outputs/apk/debug/app-debug.apk
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: probe-apk
+          path: apk
 
       - name: Enable KVM
         run: |
@@ -72,9 +84,8 @@ jobs:
           script: |
             W="$GITHUB_WORKSPACE"
             adb logcat -c 2>/dev/null || true
-            APK=offline-probe/app/build/outputs/apk/debug/app-debug.apk
-            ls -la "$APK" > "$W/install.txt" 2>&1 || true
-            adb install -r "$APK" >> "$W/install.txt" 2>&1 || true
+            ls -la apk/app-debug.apk > "$W/install.txt" 2>&1 || true
+            adb install -r apk/app-debug.apk >> "$W/install.txt" 2>&1 || true
             adb shell am start -n com.tammem.offlineprobe/.MainActivity >> "$W/install.txt" 2>&1 || true
             D=/sdcard/Android/data/com.tammem.offlineprobe/files
             ok=unknown
@@ -83,21 +94,19 @@ jobs:
               adb shell "test -f $D/FAIL" 2>/dev/null && { ok=0; break; }
               sleep 3
             done
-            adb pull "$D/probe.log" "$W/probe.log" 2>/dev/null || echo "(no probe.log; STARTED=$(adb shell test -f $D/STARTED 2>/dev/null && echo yes || echo no))" > "$W/probe.log"
-            adb logcat -d 2>/dev/null | grep -iE "offlineprobe|AndroidRuntime|OfflineCompiler|dalvikvm|E art|OutOfMemory|FATAL" | tail -120 > "$W/logcat.txt" 2>/dev/null || true
+            adb pull "$D/probe.log" "$W/probe.log" 2>/dev/null || echo "(no probe.log)" > "$W/probe.log"
+            adb logcat -d 2>/dev/null | grep -iE "offlineprobe|AndroidRuntime|OfflineCompiler|OutOfMemory|FATAL|art " | tail -120 > "$W/logcat.txt" 2>/dev/null || true
             [ -s "$W/logcat.txt" ] || echo "(logcat empty)" > "$W/logcat.txt"
             echo "ok=$ok" >> "$W/probe.log"
             echo "===== probe.log ====="; cat "$W/probe.log"
             echo "===== logcat ====="; cat "$W/logcat.txt"
             true
 
-      - name: Publish probe.log to probe-results branch
+      - name: Publish logs to probe-results branch
         if: always()
         run: |
           cd "$GITHUB_WORKSPACE"
-          [ -f probe.log ] || echo "no probe.log produced" > probe.log
-          [ -f logcat.txt ] || echo "(no logcat)" > logcat.txt
-          [ -f install.txt ] || echo "(no install log)" > install.txt
+          for f in probe.log logcat.txt install.txt; do [ -f "$f" ] || echo "(missing $f)" > "$f"; done
           rm -rf probe-out && mkdir -p probe-out && cp probe.log logcat.txt install.txt probe-out/
           cd probe-out
           git init -q -b probe-results
