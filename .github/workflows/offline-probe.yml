@@ -31,10 +31,14 @@ jobs:
           for V in 3.40.0 3.39.0 3.38.0 3.33.0; do
             curl -fsSL "https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/$V/ecj-$V.jar" -o ecj.jar && break
           done
-          dex() { java -cp "$D8" com.android.tools.r8.D8 --release --min-api 26 --lib "$AJ" --output "$2" "$1"; }
+          # ECJ needs the java.compiler module (javax.lang.model / javax.tools /
+          # javax.annotation.processing), which Android does not ship. Pull it from the JDK.
+          "$JAVA_HOME/bin/jmod" extract --dir jc "$JAVA_HOME/jmods/java.compiler.jmod"
+          ( cd jc/classes && jar cf "$GITHUB_WORKSPACE/javacompiler.jar" . )
+          dex() { local o="$1"; shift; java -cp "$D8" com.android.tools.r8.D8 --release --min-api 26 --lib "$AJ" --output "$o" "$@"; }
           mkdir -p ecj_dex d8_dex
-          dex ecj.jar ecj_dex
-          dex "$D8" d8_dex
+          dex ecj_dex ecj.jar javacompiler.jar
+          dex d8_dex "$D8"
           OUT=offline-probe/app/src/main/assets/toolchain
           mkdir -p "$OUT"
           # A runnable dex-jar: keep the tool's own resources (.properties message
