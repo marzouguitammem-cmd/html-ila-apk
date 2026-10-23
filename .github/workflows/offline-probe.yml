@@ -1,0 +1,77 @@
+name: Offline toolchain probe
+
+# Feasibility gate for the OFFLINE Java engine (②):
+#  stage 1 — can we fetch ECJ and dex ECJ + D8 so they can run on Android (ART)?
+# Run manually (workflow_dispatch). It builds nothing on a phone yet; it only
+# proves the toolchain can be packaged for on-device use.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  toolchain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Locate SDK tools
+        id: sdk
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          echo "bt=$BT" >> "$GITHUB_OUTPUT"
+          echo "d8=$BT/lib/d8.jar" >> "$GITHUB_OUTPUT"
+          AJ="$ANDROID_HOME/platforms/android-34/android.jar"
+          [ -f "$AJ" ] || AJ=$(ls -d "$ANDROID_HOME"/platforms/android-*/android.jar | sort -V | tail -1)
+          echo "androidjar=$AJ" >> "$GITHUB_OUTPUT"
+          ls -la "$BT/lib/d8.jar" "$AJ"
+
+      - name: Fetch ECJ
+        run: |
+          set -e
+          for V in 3.40.0 3.39.0 3.38.0 3.33.0; do
+            U="https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/$V/ecj-$V.jar"
+            echo "try $U"
+            if curl -fsSL "$U" -o ecj.jar; then echo "got ecj $V"; break; fi
+          done
+          ls -la ecj.jar
+          # sanity: the batch compiler entry point is present
+          unzip -l ecj.jar | grep -E "org/eclipse/jdt/core/compiler/batch/BatchCompiler.class" && echo "ECJ ok"
+
+      - name: Dex ECJ and D8 for on-device use
+        run: |
+          set -e
+          D8='${{ steps.sdk.outputs.d8 }}'
+          AJ='${{ steps.sdk.outputs.androidjar }}'
+          run_d8() {
+            java -cp "$D8" com.android.tools.r8.D8 --release --min-api 26 \
+              --lib "$AJ" --output "$2" "$1" 2> "$2.err" || { echo "D8 FAILED on $1"; tail -20 "$2.err"; return 1; }
+          }
+          mkdir -p ecj_dex d8_dex
+          echo "== dex ECJ =="
+          run_d8 ecj.jar ecj_dex
+          echo "== dex D8 =="
+          run_d8 "$D8" d8_dex
+          echo "ECJ dex files:"; ls -la ecj_dex
+          echo "D8 dex files:"; ls -la d8_dex
+          # package as jars the app will carry
+          (cd ecj_dex && zip -q ../ecj.dex.jar classes*.dex)
+          (cd d8_dex && zip -q ../d8.dex.jar classes*.dex)
+          cp "$AJ" android.jar
+          ls -la ecj.dex.jar d8.dex.jar android.jar
+          echo "SIZES (MB):"
+          du -m ecj.dex.jar d8.dex.jar android.jar | sort -n
+
+      - name: Upload toolchain
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-toolchain
+          path: |
+            ecj.dex.jar
+            d8.dex.jar
+            android.jar
