@@ -122,8 +122,10 @@ public class OfflineCompiler {
         List<Path> sources = new ArrayList<>();
         collectJava(srcRoot, sources);
         StringBuilder cmd = new StringBuilder();
+        // -proc:none skips annotation processing, whose setup needs newer
+        // SourceVersion constants (RELEASE_17) we deliberately don't ship.
         cmd.append("-bootclasspath ").append(androidJar.getAbsolutePath())
-           .append(" -source 8 -target 8 -nowarn -d ").append(out.getAbsolutePath());
+           .append(" -source 8 -target 8 -proc:none -nowarn -d ").append(out.getAbsolutePath());
         for (Path p : sources) cmd.append(' ').append(p.toString());
 
         StringWriter sysOut = new StringWriter(), sysErr = new StringWriter();
