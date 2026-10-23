@@ -39,17 +39,29 @@ public class OfflineCompiler {
         this.ctx = ctx;
     }
 
+    private File logFile;
+
     private void line(String s) {
         log.append(s).append('\n');
+        // Flush to disk immediately so a crash mid-compile still shows how far we got.
+        try {
+            if (logFile != null) {
+                try (FileOutputStream o = new FileOutputStream(logFile)) { o.write(log.toString().getBytes("UTF-8")); }
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     public void run() {
         try {
+            File ext = ctx.getExternalFilesDir(null);
+            logFile = new File(ext != null ? ext : ctx.getFilesDir(), "probe.log");
             work = new File(ctx.getFilesDir(), "probe");
             toolDir = new File(ctx.getFilesDir(), "toolchain");
             deleteRec(work);
             work.mkdirs();
             toolDir.mkdirs();
+            line("start");
 
             File ecjJar = copyAsset("toolchain/ecj.dex.jar", new File(toolDir, "ecj.dex.jar"));
             File d8Jar = copyAsset("toolchain/d8.dex.jar", new File(toolDir, "d8.dex.jar"));
@@ -79,12 +91,14 @@ public class OfflineCompiler {
 
             File classes = new File(work, "classes");
             classes.mkdirs();
+            line("compiling with ECJ...");
             ecjOk = compileWithEcj(ecjJar, src.getParentFile().getParentFile().getParentFile(), classes);
             line("ECJ compiled: " + ecjOk + " (.class files: " + countClasses(classes) + ")");
             if (!ecjOk) return;
 
             File dexOut = new File(work, "dex");
             dexOut.mkdirs();
+            line("dexing with D8...");
             d8Ok = dexWithD8(d8Jar, classes, dexOut);
             File dex = new File(dexOut, "classes.dex");
             line("D8 dexed: " + d8Ok + " (classes.dex: " + (dex.isFile() ? dex.length() + " bytes" : "MISSING") + ")");
@@ -200,6 +214,11 @@ public class OfflineCompiler {
     }
 
     private File copyAsset(String name, File dest) throws Exception {
+        // Overwrite even if a previous run left it read-only (dex jars get chmod'd).
+        if (dest.exists()) {
+            dest.setWritable(true, true);
+            dest.delete();
+        }
         AssetManager am = ctx.getAssets();
         try (InputStream in = am.open(name); FileOutputStream out = new FileOutputStream(dest)) {
             byte[] buf = new byte[1 << 16]; int r;
