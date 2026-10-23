@@ -106,7 +106,8 @@ for m in re.finditer(r"<node [^>]*>", xml):
     n = m.group(0)
     t = re.search(r' text="([^"]*)"', n)
     r = re.search(r' resource-id="([^"]*)"', n)
-    if (t and pat.search(t.group(1))) or (r and pat.search(r.group(1))):
+    d = re.search(r' content-desc="([^"]*)"', n)
+    if (t and pat.search(t.group(1))) or (r and pat.search(r.group(1))) or (d and pat.search(d.group(1))):
         b = re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', n)
         if b:
             x1, y1, x2, y2 = map(int, b.groups())
@@ -189,6 +190,81 @@ PY2
   rm -f "$OUT/vplayer.apk"
 else
   echo "video player offline build failed"; fail=1
+fi
+
+echo "== gallery (Java, built offline on the device) with photos in several folders"
+adb shell mkdir -p /sdcard/DCIM/Camera /sdcard/Pictures/Screenshots "/sdcard/Pictures/WhatsApp Images" /sdcard/Download
+adb push ci/fixtures/photos/cam_1.jpg /sdcard/DCIM/Camera/cam_1.jpg >/dev/null
+adb push ci/fixtures/photos/cam_2.jpg /sdcard/DCIM/Camera/cam_2.jpg >/dev/null
+adb push ci/fixtures/photos/shot_1.jpg /sdcard/Pictures/Screenshots/shot_1.jpg >/dev/null
+adb push ci/fixtures/photos/wa_1.jpg "/sdcard/Pictures/WhatsApp Images/wa_1.jpg" >/dev/null
+adb push ci/fixtures/photos/dl_1.jpg /sdcard/Download/dl_1.jpg >/dev/null
+adb shell content call --uri content://media/external/file --method scan_volume --arg external_primary >/dev/null 2>&1 || true
+sleep 3
+adb push ci/fixtures/Gallery.java "$D/Gallery.java" >/dev/null
+adb shell rm -f "$D/javaselftest.done" "$D/javaselftest.apk"
+adb shell am force-stop com.tammem.htmlilaapk
+adb shell am start -W -n com.tammem.htmlilaapk/.MainActivity --ez javaselftest true \
+  --es code_file "$DREAL/Gallery.java" --es app_pkg com.tammem.apps.gallery --es app_name Gallery >/dev/null
+for i in $(seq 1 120); do
+  adb shell "test -f $D/javaselftest.done" && break
+  sleep 2
+done
+adb shell cat "$D/javaselftest.log" > "$OUT/gallery-build.log" 2>&1
+cat "$OUT/gallery-build.log"
+if grep -q '^OK' "$OUT/gallery-build.log"; then
+  adb pull "$D/javaselftest.apk" "$OUT/gallery.apk" >/dev/null || fail=1
+  adb install -r "$OUT/gallery.apk" > "$OUT/install-gallery.txt" 2>&1 || fail=1
+  adb shell dumpsys package com.tammem.apps.gallery | grep -iE "READ_MEDIA_IMAGES" > "$OUT/gallery-perms.txt"
+  grep -q "READ_MEDIA_IMAGES" "$OUT/gallery-perms.txt" || { echo "READ_MEDIA_IMAGES not declared"; fail=1; }
+
+  adb shell am start -n com.tammem.apps.gallery/com.tammem.gallery.Gallery >/dev/null
+  sleep 5
+  adb exec-out screencap -p > "$OUT/6a-gallery-permission.png"
+  adb shell dumpsys activity activities | grep -E "topResumedActivity" | head -1 > "$OUT/gallery-top.txt"
+  grep -qi "GrantPermissions" "$OUT/gallery-top.txt" || { echo "gallery: no permission dialog"; fail=1; }
+  xy=$(find_xy "permission_allow_all_button|^Allow all$|^Allow$|permission_allow_button")
+  if [ -n "$xy" ]; then adb shell input tap $xy; else adb shell pm grant com.tammem.apps.gallery android.permission.READ_MEDIA_IMAGES; fi
+  sleep 5
+  adb exec-out screencap -p > "$OUT/6b-albums.png"
+  find_xy "^Camera$" > "$OUT/gallery-camera.txt"
+  cp "$OUT/ui.xml" "$OUT/ui-albums.xml"
+  for a in Camera Screenshots "WhatsApp Images" Download; do
+    grep -q "$a" "$OUT/ui-albums.xml" || { echo "gallery: album $a missing"; fail=1; }
+  done
+  xy=$(cat "$OUT/gallery-camera.txt")
+  if [ -n "$xy" ]; then
+    adb shell input tap $xy
+    sleep 3
+    adb exec-out screencap -p > "$OUT/6c-album-grid.png"
+    xy=$(find_xy "^photo cam_")
+    cp "$OUT/ui.xml" "$OUT/ui-grid.xml"
+    grep -q "photo cam_1.jpg" "$OUT/ui-grid.xml" && grep -q "photo cam_2.jpg" "$OUT/ui-grid.xml" || { echo "gallery: Camera grid incomplete"; fail=1; }
+    if [ -n "$xy" ]; then
+      adb shell input tap $xy
+      sleep 3
+      adb exec-out screencap -p > "$OUT/6d-viewer.png"
+      find_xy "^cam_" > /dev/null; cp "$OUT/ui.xml" "$OUT/ui-viewer.xml"
+      first=$(grep -o 'text="cam_[12].jpg"' "$OUT/ui-viewer.xml" | head -1)
+      echo "viewer shows: $first"
+      [ -n "$first" ] || { echo "gallery: viewer title missing"; fail=1; }
+      adb shell input swipe 950 1200 120 1200 120
+      sleep 2
+      find_xy "^cam_" > /dev/null; cp "$OUT/ui.xml" "$OUT/ui-viewer2.xml"
+      second=$(grep -o 'text="cam_[12].jpg"' "$OUT/ui-viewer2.xml" | head -1)
+      echo "after swipe: $second"
+      [ -n "$second" ] && [ "$second" != "$first" ] || { echo "gallery: swipe did not change photo"; fail=1; }
+      adb exec-out screencap -p > "$OUT/6e-viewer-swiped.png"
+    else
+      echo "gallery: no photo cell"; fail=1
+    fi
+  else
+    echo "gallery: Camera album not found"; fail=1
+  fi
+  adb shell pidof com.tammem.apps.gallery > "$OUT/pid-gallery.txt" || { echo "gallery died"; fail=1; }
+  rm -f "$OUT/gallery.apk"
+else
+  echo "gallery offline build failed"; fail=1
 fi
 
 adb logcat -d -b crash > "$OUT/crash.txt" 2>&1
