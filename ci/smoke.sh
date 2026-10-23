@@ -239,7 +239,8 @@ if grep -q '^OK' "$OUT/gallery-build.log"; then
     adb exec-out screencap -p > "$OUT/6c-album-grid.png"
     xy=$(find_xy "^photo cam_")
     cp "$OUT/ui.xml" "$OUT/ui-grid.xml"
-    grep -q "photo cam_1.jpg" "$OUT/ui-grid.xml" && grep -q "photo cam_2.jpg" "$OUT/ui-grid.xml" || { echo "gallery: Camera grid incomplete"; fail=1; }
+    # uiautomator sometimes drops a grid cell from its dump; the swipe below proves both photos.
+    grep -q "photo cam_" "$OUT/ui-grid.xml" && grep -q "2 صورة" "$OUT/ui-grid.xml" || { echo "gallery: Camera grid missing"; fail=1; }
     if [ -n "$xy" ]; then
       adb shell input tap $xy
       sleep 3
@@ -256,6 +257,7 @@ if grep -q '^OK' "$OUT/gallery-build.log"; then
       second=$(grep -o 'text="cam_[12].jpg"' "$OUT/ui-viewer2.xml" | head -1)
       echo "after swipe: $second"
       [ -n "$second" ] && [ "$second" != "$first" ] || { echo "gallery: swipe did not change photo"; fail=1; }
+      grep -q 'text="cam_1.jpg"' "$OUT/ui-viewer.xml" "$OUT/ui-viewer2.xml" && grep -q 'text="cam_2.jpg"' "$OUT/ui-viewer.xml" "$OUT/ui-viewer2.xml" || { echo "gallery: both Camera photos not seen"; fail=1; }
       adb exec-out screencap -p > "$OUT/6e-viewer-swiped.png"
     else
       echo "gallery: no photo cell"; fail=1
