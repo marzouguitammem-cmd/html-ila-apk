@@ -31,10 +31,16 @@ jobs:
           for V in 3.40.0 3.39.0 3.38.0 3.33.0; do
             curl -fsSL "https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/$V/ecj-$V.jar" -o ecj.jar && break
           done
-          # ECJ needs the java.compiler module (javax.lang.model / javax.tools /
-          # javax.annotation.processing), which Android does not ship. Pull it from the JDK.
-          "$JAVA_HOME/bin/jmod" extract --dir jc "$JAVA_HOME/jmods/java.compiler.jmod"
-          ( cd jc/classes && jar cf "$GITHUB_WORKSPACE/javacompiler.jar" . )
+          # ECJ needs the java.compiler API (javax.lang.model / javax.tools /
+          # javax.annotation.processing), absent on Android. The JDK 17 version's
+          # SourceVersion.<clinit> calls Runtime.version() (not on ART), so take the
+          # JDK 8 classes, which don't.
+          RT8="${JAVA_HOME_8_X64:-/nope}/jre/lib/rt.jar"
+          [ -f "$RT8" ] || RT8=$(ls /usr/lib/jvm/*8*/jre/lib/rt.jar 2>/dev/null | head -1)
+          echo "rt8=$RT8"; ls -la "$RT8"
+          mkdir -p jc
+          unzip -q -o "$RT8" 'javax/lang/model/*' 'javax/annotation/processing/*' 'javax/tools/*' -d jc
+          ( cd jc && jar cf "$GITHUB_WORKSPACE/javacompiler.jar" . )
           dex() { local o="$1"; shift; java -cp "$D8" com.android.tools.r8.D8 --release --min-api 26 --lib "$AJ" --output "$o" "$@"; }
           mkdir -p ecj_dex d8_dex
           dex ecj_dex ecj.jar javacompiler.jar
