@@ -163,7 +163,10 @@ public class OfflineCompiler {
         // — ECJ's messages.properties, META-INF/services — remain loadable from the jar.
         File opt = new File(ctx.getCodeCacheDir(), dexJar.getName() + ".opt");
         opt.mkdirs();
-        line("  loading " + dexJar.getName());
+        // Android (API 26+) refuses to load a dex from a writable file, so make it read-only.
+        dexJar.setWritable(false, false);
+        dexJar.setReadOnly();
+        line("  loading " + dexJar.getName() + " (writable=" + dexJar.canWrite() + ")");
         return new dalvik.system.DexClassLoader(
                 dexJar.getAbsolutePath(), opt.getAbsolutePath(), null, getClass().getClassLoader());
     }
