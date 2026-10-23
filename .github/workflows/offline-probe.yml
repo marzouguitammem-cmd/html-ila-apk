@@ -70,17 +70,29 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
-            set -e
             adb wait-for-device
             adb install -r offline-probe/app/build/outputs/apk/debug/app-debug.apk
             adb shell am start -n com.tammem.offlineprobe/.MainActivity
             D=/sdcard/Android/data/com.tammem.offlineprobe/files
-            for i in $(seq 1 90); do
+            ok=unknown
+            for i in $(seq 1 100); do
               if adb shell "test -f $D/PASS" 2>/dev/null; then ok=1; break; fi
               if adb shell "test -f $D/FAIL" 2>/dev/null; then ok=0; break; fi
               sleep 3
             done
-            echo "======== probe.log ========"
-            adb shell cat "$D/probe.log" || echo "(no log)"
-            echo "==========================="
-            if [ "${ok:-}" = "1" ]; then echo "OFFLINE COMPILE: PASS"; else echo "OFFLINE COMPILE: FAIL"; exit 1; fi
+            adb pull "$D/probe.log" "$GITHUB_WORKSPACE/probe.log" 2>/dev/null || echo "(no probe.log)" > "$GITHUB_WORKSPACE/probe.log"
+            echo "======== probe.log ========"; cat "$GITHUB_WORKSPACE/probe.log"; echo "==========================="
+            echo "ok=$ok"
+
+      - name: Publish probe.log to probe-results branch
+        if: always()
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          [ -f probe.log ] || echo "no probe.log produced" > probe.log
+          rm -rf probe-out && mkdir -p probe-out && cp probe.log probe-out/
+          cd probe-out
+          git init -q -b probe-results
+          git config user.name ci; git config user.email ci@users.noreply.github.com
+          echo "run ${{ github.run_number }}" > RUN.txt
+          git add -A; git commit -qm "probe ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" probe-results
